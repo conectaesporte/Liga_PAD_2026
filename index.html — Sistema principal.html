@@ -1,0 +1,923 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liga PAD 2026</title>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f4f8;
+    color: #172033;
+}
+header {
+    background: #123c2b;
+    color: white;
+    padding: 25px 18px;
+    text-align: center;
+}
+header h1 { margin: 0 0 8px; }
+header p { margin: 0; }
+nav {
+    background: #fff;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    box-shadow: 0 2px 5px #0001;
+}
+button, select, input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccd3dc;
+    font-size: 14px;
+}
+button {
+    background: #176b45;
+    color: white;
+    border: 0;
+    cursor: pointer;
+}
+button:hover { background: #0e5133; }
+nav button { background: #e8eee9; color: #123c2b; }
+nav button:hover { background: #cbded1; }
+main { max-width: 1100px; margin: 25px auto; padding: 0 15px; }
+.painel {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px #0000000d;
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: 12px;
+}
+.card {
+    background: #eaf3ed;
+    padding: 18px;
+    border-radius: 8px;
+    text-align: center;
+}
+.card strong { display: block; font-size: 28px; color: #176b45; }
+h2 { color: #176b45; margin-top: 0; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+th { background: #eaf3ed; }
+.campo { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.campo input, .campo select { flex: 1; min-width: 130px; }
+.aviso { color: #555; font-size: 14px; }
+.oculto { display: none; }
+@media(max-width:600px) {
+    table { font-size: 12px; }
+    th,td { padding: 6px 3px; }
+}
+
+/* Identificação dos turnos */
+.titulo-turno {
+  background: #14532d;
+  color: white;
+  padding: 16px;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Identificação dos grupos */
+.titulo-grupo {
+  background: #d1fae5;
+  color: #064e3b;
+  padding: 12px;
+  margin-top: 20px;
+  border-left: 5px solid #16a34a;
+  border-radius: 5px;
+}
+
+/* Identificação das rodadas */
+.titulo-rodada {
+  background: #f1f5f9;
+  color: #334155;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 5px;
+  font-size: 15px;
+}
+
+/* Espaçamento entre os jogos */
+#listaJogos .painel {
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.placar-vitoria {
+  background-color: rgba(34, 197, 94, 0.18) !important;
+  border: 2px solid rgba(34, 197, 94, 0.5) !important;
+}
+
+.placar-derrota {
+  background-color: rgba(239, 68, 68, 0.16) !important;
+  border: 2px solid rgba(239, 68, 68, 0.45) !important;
+}
+
+.placar-empate {
+  background-color: rgba(245, 158, 11, 0.17) !important;
+  border: 2px solid rgba(245, 158, 11, 0.45) !important;
+}
+
+.status-jogo {
+  text-align: right;
+  margin-bottom: 8px;
+}
+
+.status-finalizado,
+.status-pendente {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-finalizado {
+  background: rgba(34, 197, 94, 0.15);
+  color: #166534;
+}
+
+
+.status-pendente {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+
+.destaque-campeao {
+  background: linear-gradient(135deg, #14532d, #16a34a);
+  color: white;
+  text-align: center;
+  padding: 30px;
+  margin-top: 25px;
+  border-radius: 12px;
+  border: 3px solid #eab308;
+}
+
+.destaque-campeao h1 {
+  color: #fef08a;
+  font-size: 30px;
+  margin: 15px 0;
+}
+
+.destaque-campeao h2 {
+  color: white;
+}
+
+/* Visual das fases finais */
+#finaisManha .painel,
+#finaisTarde .painel {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 5px solid #15803d;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+#finaisManha h4,
+#finaisTarde h4 {
+  color: #166534;
+  margin-top: 24px;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+#finaisManha .campo,
+#finaisTarde .campo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chaveamento {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-top: 20px;
+}
+
+.coluna-semifinais,
+.coluna-final {
+  min-width: 0;
+}
+
+.coluna-final {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chaveamento h3 {
+  color: #166534;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 800px) {
+  .chaveamento {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>LIGA DE FUTSAL INTERCLASSE PAD 2026</h1>
+    <p>Muito além do jogo!</p>
+    <p>E.E.M. Padre Arimateia Diniz</p>
+</header>
+
+<nav>
+    <button onclick="mostrar('inicio')">Início</button>
+    <button onclick="mostrar('jogos')">Jogos e resultados</button>
+    <button onclick="mostrar('classificacao')">Classificação</button>
+    <button onclick="mostrar('equipes')">Equipes</button>
+
+<button onclick="mostrar('finais')">🏆 Fases Finais</button>
+
+</nav>
+
+<main>
+<section id="inicio" class="painel">
+    <h2>Painel da competição</h2>
+    <div class="cards">
+        <div class="card"><strong id="totalEquipes">0</strong>Equipes</div>
+        <div class="card"><strong id="totalJogos">0</strong>Jogos cadastrados</div>
+        <div class="card"><strong id="jogosFinalizados">0</strong>Jogos finalizados</div>
+    </div>
+    <h3>Organização</h3>
+    <p>As competições da manhã e da tarde são independentes. Cada turno terá sua própria classificação, semifinais e final.</p>
+    <p class="aviso">Os dados são salvos neste navegador e neste computador.</p>
+
+<div class="painel">
+  <h3>💾 Segurança dos Resultados</h3>
+  <p>
+    Faça uma cópia de segurança dos resultados
+    da Liga PAD 2026.
+  </p>
+
+  <button onclick="fazerBackup()">
+    💾 Fazer Backup dos Resultados
+  </button>
+
+<label for="arquivoBackup" class="botao-backup">
+  📂 Restaurar Backup
+</label>
+
+<input
+  type="file"
+  id="arquivoBackup"
+  accept=".json,application/json"
+  onchange="restaurarBackup(event)"
+  style="display:none;"
+>
+
+</div>
+</section>
+
+<section id="jogos" class="painel oculto">
+    <h2>Jogos e resultados</h2>
+    <div class="campo">
+        <select id="filtroTurno" onchange="listarJogos()">
+            <option value="">Todos os turnos</option>
+            <option>Manhã</option>
+            <option>Tarde</option>
+        </select>
+        <select id="filtroGrupo" onchange="listarJogos()">
+            <option value="">Todos os grupos</option>
+            <option>A</option><option>B</option>
+        </select>
+    </div>
+    <div id="listaJogos"></div>
+</section>
+
+<section id="classificacao" class="painel oculto">
+    <h2>Classificação</h2>
+    <div class="campo">
+        <select id="classTurno" onchange="listarClassificacao()">
+            <option>Manhã</option><option>Tarde</option>
+        </select>
+        <select id="classGrupo" onchange="listarClassificacao()">
+            <option>A</option><option>B</option>
+        </select>
+    </div>
+    <div id="tabelaClassificacao"></div>
+</section>
+
+<section id="equipes" class="painel oculto">
+    <h2>Equipes participantes</h2>
+    <div id="listaEquipes"></div>
+</section>
+
+<section id="finais" class="painel oculto">
+  <h2>🏆 Fases Finais - Liga PAD 2026</h2>
+
+  <p>Confira as semifinais, finais e campeões
+  de cada turno.</p>
+
+  <h3>☀️ Campeonato da Manhã</h3>
+  <div id="finaisManha">
+    Aguardando definição dos classificados.
+  </div>
+
+  <hr>
+
+  <h3>🌤️ Campeonato da Tarde</h3>
+  <div id="finaisTarde">
+    Aguardando definição dos classificados.
+  </div>
+</section>
+
+
+</main>
+
+<script>
+const equipes = [
+["Manhã","A","1º ANO A"],["Manhã","A","2º ANO A"],
+["Manhã","A","2º ANO B"],["Manhã","A","3º ANO A"],
+["Manhã","A","3º ANO B"],
+["Manhã","B","1º ANO B"],["Manhã","B","2º ANO C"],
+["Manhã","B","2º ANO D"],["Manhã","B","3º ANO C"],
+["Manhã","B","3º ANO D"],
+["Tarde","A","1º ANO C"],["Tarde","A","2º ANO E"],
+["Tarde","A","2º ANO G"],["Tarde","A","3º ANO E"],
+["Tarde","B","1º ANO D"],["Tarde","B","2º ANO F"],
+["Tarde","B","3º ANO F"],["Tarde","B","3º ANO G"]
+];
+
+const confrontos = [
+["Manhã","A",1,"2º ANO A","2º ANO B"],
+["Manhã","A",1,"2º ANO B","3º ANO A"],
+["Manhã","A",2,"3º ANO B","3º ANO A"],
+["Manhã","A",2,"1º ANO A","3º ANO A"],
+["Manhã","A",3,"3º ANO B","1º ANO A"],
+["Manhã","A",3,"2º ANO B","1º ANO A"],
+["Manhã","A",4,"2º ANO A","3º ANO A"],
+["Manhã","A",4,"3º ANO B","2º ANO A"],
+["Manhã","A",5,"3º ANO B","2º ANO B"],
+["Manhã","A",5,"1º ANO A","2º ANO A"],
+["Manhã","B",1,"2º ANO C","2º ANO D"],
+["Manhã","B",1,"2º ANO D","3º ANO C"],
+["Manhã","B",2,"3º ANO D","3º ANO C"],
+["Manhã","B",2,"1º ANO B","3º ANO C"],
+["Manhã","B",3,"3º ANO D","1º ANO B"],
+["Manhã","B",3,"2º ANO D","1º ANO B"],
+["Manhã","B",4,"2º ANO C","3º ANO C"],
+["Manhã","B",4,"3º ANO D","2º ANO C"],
+["Manhã","B",5,"3º ANO D","2º ANO D"],
+["Manhã","B",5,"1º ANO B","2º ANO C"],
+["Tarde","A",1,"1º ANO C","2º ANO E"],
+["Tarde","A",1,"2º ANO G","3º ANO E"],
+["Tarde","A",2,"1º ANO C","2º ANO G"],
+["Tarde","A",2,"2º ANO E","3º ANO E"],
+["Tarde","A",3,"1º ANO C","3º ANO E"],
+["Tarde","A",3,"2º ANO E","2º ANO G"],
+["Tarde","B",1,"1º ANO D","2º ANO F"],
+["Tarde","B",1,"3º ANO F","3º ANO G"],
+["Tarde","B",2,"1º ANO D","3º ANO F"],
+["Tarde","B",2,"2º ANO F","3º ANO G"],
+["Tarde","B",3,"1º ANO D","3º ANO G"],
+["Tarde","B",3,"2º ANO F","3º ANO F"]
+];
+
+let jogos = JSON.parse(localStorage.getItem("ligaPAD_jogos") || "null");
+if (!jogos) {
+    jogos = confrontos.map((c,i)=>({
+        id:i, turno:c[0], grupo:c[1], rodada:c[2],
+        casa:c[3], fora:c[4], golsCasa:"", golsFora:""
+    }));
+    salvar();
+}
+
+function salvar() {
+    localStorage.setItem("ligaPAD_jogos",JSON.stringify(jogos));
+}
+function mostrar(id) {
+    document.querySelectorAll("main section").forEach(s=>s.classList.add("oculto"));
+    document.getElementById(id).classList.remove("oculto");
+    atualizar();
+}
+function atualizar() {
+    document.getElementById("totalEquipes").textContent=equipes.length;
+    document.getElementById("totalJogos").textContent=jogos.length;
+    document.getElementById("jogosFinalizados").textContent=
+        jogos.filter(j=>j.golsCasa!=="" && j.golsFora!=="").length;
+    listarJogos(); listarClassificacao(); listarEquipes(); listarFinais();
+}
+function listarJogos() {
+  let turno = document.getElementById("filtroTurno").value;
+  let grupo = document.getElementById("filtroGrupo").value;
+
+  let filtrados = jogos.filter(j =>
+    (!turno || j.turno === turno) &&
+    (!grupo || j.grupo === grupo)
+  );
+
+  
+function corPlacar(jogo, lado) {
+  if (
+    jogo.golsCasa === "" ||
+    jogo.golsFora === "" ||
+    jogo.golsCasa == null ||
+    jogo.golsFora == null
+  ) return "";
+
+  let casa = Number(jogo.golsCasa);
+  let fora = Number(jogo.golsFora);
+
+  if (casa === fora) return "placar-empate";
+
+  if (lado === "casa") {
+    return casa > fora ? "placar-vitoria" : "placar-derrota";
+  }
+
+  return fora > casa ? "placar-vitoria" : "placar-derrota";
+}
+let html = "";
+  let turnos = ["Manhã", "Tarde"];
+
+  turnos.forEach(t => {
+    let jogosTurno = filtrados.filter(j => j.turno === t);
+    if (jogosTurno.length === 0) return;
+
+    html += `<h2 class="titulo-turno">TURNO DA ${t.toUpperCase()}</h2>`;
+
+    ["A", "B"].forEach(g => {
+      let jogosGrupo = jogosTurno.filter(j => j.grupo === g);
+      if (jogosGrupo.length === 0) return;
+
+      html += `<h3 class="titulo-grupo">GRUPO ${g}</h3>`;
+
+      let rodadas = [...new Set(jogosGrupo.map(j => j.rodada))];
+
+      rodadas.forEach(r => {
+        html += `<h4 class="titulo-rodada">RODADA ${r}</h4>`;
+
+        jogosGrupo.filter(j => j.rodada === r).forEach(j => {
+
+const finalizado =
+  j.golsCasa !== "" &&
+  j.golsFora !== "" &&
+  j.golsCasa != null &&
+  j.golsFora != null;
+
+const statusJogo = finalizado
+  ? '<span class="status-finalizado">Finalizado</span>'
+  : '<span class="status-pendente">Pendente</span>';
+
+          html += `
+            <div class="painel">
+                <div class="status-jogo">${statusJogo}</div>
+              <div class="campo">
+                <span>${j.casa}</span>
+                <input type="number" min="0" id="c${j.id}"
+                class="${corPlacar(j, 'casa')}"
+                  value="${j.golsCasa ?? ''}" placeholder="-">
+                <b>X</b>
+                <input type="number" min="0" id="f${j.id}"
+                class="${corPlacar(j, 'fora')}"
+                  value="${j.golsFora ?? ''}" placeholder="-">
+                <span>${j.fora}</span>
+                <button onclick="registrar(${j.id})">Salvar</button>
+              </div>
+            </div>`;
+        });
+      });
+    });
+  });
+
+  document.getElementById("listaJogos").innerHTML =
+    html || "<p>Nenhum jogo encontrado.</p>";
+}
+
+function registrar(id) {
+    let c=document.getElementById("c"+id).value;
+    let f=document.getElementById("f"+id).value;
+    if(c===""||f===""||Number(c)<0||Number(f)<0){
+        alert("Informe os dois placares corretamente.");return;
+    }
+    
+jogos[id].golsCasa = Number(c);
+jogos[id].golsFora = Number(f);
+
+salvar();
+
+verificarResultadosFinais(jogos[id].turno);
+
+atualizar();
+
+    alert("Resultado registrado!");
+}
+
+function verificarResultadosFinais(turno) {
+  const grupoA = calcular(turno, "A");
+  const grupoB = calcular(turno, "B");
+
+  if (grupoA.length < 2 || grupoB.length < 2) return;
+
+  const confrontos = {
+    semi1: [grupoA[0].nome, grupoB[1].nome],
+    semi2: [grupoB[0].nome, grupoA[1].nome]
+  };
+
+  let alterou = false;
+
+  ["semi1", "semi2"].forEach(fase => {
+    const chave = `${turno}-${fase}`;
+    const resultado = resultadosFinais[chave];
+
+    if (resultado &&
+        (resultado.casa !== confrontos[fase][0] ||
+         resultado.fora !== confrontos[fase][1])) {
+      delete resultadosFinais[chave];
+      alterou = true;
+    }
+  });
+
+  if (alterou) {
+    delete resultadosFinais[`${turno}-final`];
+
+    localStorage.setItem(
+      "ligaPAD_resultadosFinais",
+      JSON.stringify(resultadosFinais)
+    );
+  }
+}
+function calcular(turno,grupo) {
+    let times=equipes.filter(e=>e[0]===turno&&e[1]===grupo);
+    let tabela=times.map(e=>({
+        nome:e[2], pontos:0, jogos:0, v:0, e:0, d:0,
+        gp:0, gc:0, sg:0
+    }));
+    jogos.filter(j=>j.turno===turno&&j.grupo===grupo&&
+        j.golsCasa!==""&&j.golsFora!=="").forEach(j=>{
+        let a=tabela.find(t=>t.nome===j.casa);
+        let b=tabela.find(t=>t.nome===j.fora);
+        let x=Number(j.golsCasa), y=Number(j.golsFora);
+        a.jogos++;b.jogos++;a.gp+=x;a.gc+=y;b.gp+=y;b.gc+=x;
+        if(x>y){a.pontos+=3;a.v++;b.d++;}
+        else if(x<y){b.pontos+=3;b.v++;a.d++;}
+        else{a.pontos++;b.pontos++;a.e++;b.e++;}
+    });
+    tabela.forEach(t=>t.sg=t.gp-t.gc);
+    return tabela.sort((a,b)=>b.pontos-a.pontos||b.sg-a.sg||b.gp-a.gp);
+}
+function listarClassificacao() {
+    let turno=document.getElementById("classTurno").value;
+    let grupo=document.getElementById("classGrupo").value;
+    let tabela=calcular(turno,grupo);
+    document.getElementById("tabelaClassificacao").innerHTML=`
+    <table><thead><tr><th>Equipe</th><th>PTS</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead>
+    <tbody>${tabela.map(t=>`<tr><td>${t.nome}</td><td>${t.pontos}</td><td>${t.jogos}</td><td>${t.v}</td><td>${t.e}</td><td>${t.d}</td><td>${t.gp}</td><td>${t.gc}</td><td>${t.sg}</td></tr>`).join("")}</tbody></table>
+    <p class="aviso">Desempate: pontos, saldo de gols e gols marcados. Confronto direto será conferido em caso de igualdade persistente.</p>`;
+}
+function listarEquipes() {
+    document.getElementById("listaEquipes").innerHTML=
+    ["Manhã","Tarde"].map(turno=>`
+    <h3>Turno ${turno}</h3>`+
+    ["A","B"].map(grupo=>`<h4>Grupo ${grupo}</h4><ul>`+
+    equipes.filter(e=>e[0]===turno&&e[1]===grupo).map(e=>`<li>${e[2]}</li>`).join("")+
+    `</ul>`).join("")).join("");
+}
+
+let resultadosFinais = JSON.parse(
+  localStorage.getItem("ligaPAD_resultadosFinais") || "{}"
+);
+
+
+function salvarResultadoFinal(turno, fase, casa, fora) {
+  const golsCasa = document.getElementById(
+    `mata-casa-${turno}-${fase}`
+  ).value;
+
+  const golsFora = document.getElementById(
+    `mata-fora-${turno}-${fase}`
+  ).value;
+
+  if (golsCasa === "" || golsFora === "") {
+    alert("Informe os dois placares.");
+    return;
+  }
+
+  const gc = Number(golsCasa);
+  const gf = Number(golsFora);
+
+  if (!Number.isInteger(gc) || !Number.isInteger(gf) ||
+      gc < 0 || gf < 0) {
+    alert("Informe placares válidos.");
+    return;
+  }
+
+  let vencedor;
+
+  if (gc > gf) {
+    vencedor = casa;
+  } else if (gf > gc) {
+    vencedor = fora;
+  } else {
+    vencedor = document.getElementById(
+      `vencedor-${turno}-${fase}`
+    )?.value;
+
+    if (vencedor !== casa && vencedor !== fora) {
+      alert("Empate! Selecione o vencedor nos pênaltis.");
+      return;
+    }
+  }
+
+  
+if (fase === "semi1" || fase === "semi2") {
+  const resultadoAnterior =
+    resultadosFinais[`${turno}-${fase}`];
+
+  if (
+    resultadoAnterior &&
+    (
+      resultadoAnterior.vencedor !== vencedor ||
+      resultadoAnterior.casa !== casa ||
+      resultadoAnterior.fora !== fora
+    )
+  ) {
+    delete resultadosFinais[`${turno}-final`];
+  }
+}
+resultadosFinais[`${turno}-${fase}`] = {
+    casa,
+    fora,
+    golsCasa: gc,
+    golsFora: gf,
+    vencedor
+  };
+
+  localStorage.setItem(
+    "ligaPAD_resultadosFinais",
+    JSON.stringify(resultadosFinais)
+  );
+
+  listarFinais();
+}
+
+
+function fazerBackup() {
+  const dados = {
+    versao: 1,
+    data: new Date().toISOString(),
+    jogos: jogos,
+    resultadosFinais: resultadosFinais
+  };
+
+  const arquivo = new Blob(
+    [JSON.stringify(dados, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(arquivo);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "Backup_Liga_PAD_2026.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function restaurarBackup(evento) {
+  const arquivo = evento.target.files[0];
+  if (!arquivo) return;
+
+  const leitor = new FileReader();
+
+  leitor.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+
+      if (
+        dados.versao !== 1 ||
+        !Array.isArray(dados.jogos) ||
+        !dados.resultadosFinais ||
+        typeof dados.resultadosFinais !== "object" ||
+        Array.isArray(dados.resultadosFinais)
+      ) {
+        throw new Error("Arquivo de backup inválido.");
+      }
+
+      const estruturaValida =
+        dados.jogos.length === jogos.length &&
+        dados.jogos.every((j, i) =>
+          j.id === jogos[i].id &&
+          j.turno === jogos[i].turno &&
+          j.grupo === jogos[i].grupo &&
+          j.casa === jogos[i].casa &&
+          j.fora === jogos[i].fora
+        );
+
+      if (!estruturaValida) {
+        throw new Error(
+          "Este backup não corresponde aos jogos da Liga PAD 2026."
+        );
+      }
+
+      if (!confirm(
+        "Deseja restaurar este backup? Os resultados atuais serão substituídos."
+      )) return;
+
+      const jogosRestaurados = dados.jogos.map(j => ({ ...j }));
+
+      localStorage.setItem(
+        "ligaPAD_jogos",
+        JSON.stringify(jogosRestaurados)
+      );
+
+      localStorage.setItem(
+        "ligaPAD_resultadosFinais",
+        JSON.stringify(dados.resultadosFinais)
+      );
+
+      jogos.splice(0, jogos.length, ...jogosRestaurados);
+      resultadosFinais = { ...dados.resultadosFinais };
+
+      atualizar();
+      alert("Backup restaurado com sucesso!");
+    } catch (erro) {
+      alert("Erro ao restaurar: " + erro.message);
+    } finally {
+      evento.target.value = "";
+    }
+  };
+
+  leitor.onerror = function() {
+    alert("Não foi possível ler o arquivo.");
+    evento.target.value = "";
+  };
+
+  leitor.readAsText(arquivo);
+}
+
+function listarFinais() {
+  ["Manhã", "Tarde"].forEach(turno => {
+    const grupoA = calcular(turno, "A");
+    const grupoB = calcular(turno, "B");
+
+const jogosDoTurno = jogos.filter(j => j.turno === turno);
+
+const faseConcluida = jogosDoTurno.every(j =>
+  j.golsCasa !== "" &&
+  j.golsFora !== "" &&
+  j.golsCasa != null &&
+  j.golsFora != null
+);
+
+
+    const destino = document.getElementById(
+      turno === "Manhã" ? "finaisManha" : "finaisTarde"
+    );
+
+    if (!destino) return;
+
+if (!faseConcluida || jogosDoTurno.length === 0) {
+  destino.innerHTML = `
+    <p>⏳ Aguardando a conclusão da fase de grupos.</p>
+    <p>Os semifinalistas serão definidos automaticamente
+    quando todos os jogos deste turno terminarem.</p>
+  `;
+  return;
+}
+
+
+    if (grupoA.length < 2 || grupoB.length < 2) {
+      destino.innerHTML = "<p>Aguardando equipes.</p>";
+      return;
+    }
+
+    const semifinal1 = [grupoA[0].nome, grupoB[1].nome];
+    const semifinal2 = [grupoB[0].nome, grupoA[1].nome];
+
+    
+const criarPartida = (fase, equipes) => {
+  const chave = `${turno}-${fase}`;
+  const salvo = resultadosFinais[chave];
+
+  const resultado = salvo &&
+    salvo.casa === equipes[0] &&
+    salvo.fora === equipes[1] ? salvo : null;
+
+  const golsCasa = resultado ? resultado.golsCasa : "";
+  const golsFora = resultado ? resultado.golsFora : "";
+
+  return `
+    <div class="painel">
+      <div class="campo">
+        <span>${equipes[0]}</span>
+        <input type="number" min="0"
+          id="mata-casa-${turno}-${fase}"
+          value="${golsCasa}" placeholder="-">
+        <b>X</b>
+        <input type="number" min="0"
+          id="mata-fora-${turno}-${fase}"
+          value="${golsFora}" placeholder="-">
+        <span>${equipes[1]}</span>
+
+<select id="vencedor-${turno}-${fase}">
+  <option value="">Vencedor nos pênaltis</option>
+  <option value="${equipes[0]}">${equipes[0]}</option>
+  <option value="${equipes[1]}">${equipes[1]}</option>
+</select>
+
+        <button onclick='salvarResultadoFinal(
+          ${JSON.stringify(turno)},
+          ${JSON.stringify(fase)},
+          ${JSON.stringify(equipes[0])},
+          ${JSON.stringify(equipes[1])}
+        )'>Salvar</button>
+      </div>
+    </div>
+  `;
+};
+
+
+const resultadoSemi1 = resultadosFinais[`${turno}-semi1`];
+const resultadoSemi2 = resultadosFinais[`${turno}-semi2`];
+
+const vencedorValido = (resultado, equipes) => {
+  return resultado &&
+    resultado.casa === equipes[0] &&
+    resultado.fora === equipes[1] &&
+    equipes.includes(resultado.vencedor);
+};
+
+const finalistas =
+  vencedorValido(resultadoSemi1, semifinal1) &&
+  vencedorValido(resultadoSemi2, semifinal2)
+    ? [resultadoSemi1.vencedor, resultadoSemi2.vencedor]
+    : null;
+
+const resultadoFinal = resultadosFinais[`${turno}-final`];
+
+const campeao =
+  finalistas &&
+  vencedorValido(resultadoFinal, finalistas)
+    ? resultadoFinal.vencedor
+    : null;
+
+
+destino.innerHTML = `
+  <div class="chaveamento">
+
+    <div class="coluna-semifinais">
+      <h3>⚽ Semifinais</h3>
+
+      <h4>Semifinal 1</h4>
+      ${criarPartida("semi1", semifinal1)}
+
+      <h4>Semifinal 2</h4>
+      ${criarPartida("semi2", semifinal2)}
+    </div>
+
+    <div class="coluna-final">
+      <h3>🏆 Grande Final</h3>
+
+      ${finalistas
+        ? criarPartida("final", finalistas)
+        : `<div class="painel">
+             Aguardando vencedores das semifinais
+           </div>`
+      }
+
+      ${campeao ? `
+        <div class="destaque-campeao">
+          <h2>🏆 CAMPEÃO DO TURNO DA ${turno.toUpperCase()}</h2>
+          <h1>${campeao}</h1>
+          <p>Parabéns pela conquista da Liga PAD 2026!</p>
+        </div>
+      ` : ""}
+    </div>
+
+  </div>
+`;
+
+
+  });
+}
+
+atualizar();
+</script>
+</body>
+</html>
