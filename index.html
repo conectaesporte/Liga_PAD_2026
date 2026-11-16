@@ -67,7 +67,7 @@ h3, h4 { color: var(--azul); }
 .campo input, .campo select { flex: 1; min-width: 130px; max-width: 100%; }
 .aviso { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .oculto { display: none; }
-[data-admin-only][hidden] { display: none !important; }
+[data-admin-only][hidden], #btnLogin[hidden] { display: none !important; }
 [data-admin-only] .painel { margin-top: 18px; box-shadow: none; background: #f8fafb; }
 details.painel { padding: 18px 22px; }
 summary { cursor: pointer; font-weight: 650; }
@@ -202,7 +202,7 @@ footer strong { color: #4a6378; }
 
 <button data-painel="finais" onclick="mostrar('finais')">🏆 Fases Finais</button>
 
-<button id="btnLogin" onclick="entrarAdministrador()">
+<button id="btnLogin" hidden onclick="entrarAdministrador()">
   🔐 Entrar como administrador
 </button>
 
@@ -950,6 +950,7 @@ destino.innerHTML = `
 
 /* A autorização efetiva é conferida pelas regras do Firestore.
    O documento configuracao/administrador só pode ser criado no console. */
+const modoAdministrador = new URLSearchParams(location.search).get("admin") === "1";
 let acesso = { usuario:null, adminUid:null, pronto:false, ocupado:false, revisao:0 };
 let publicarNaNuvem = null;
 let sincronizacaoPendente = null;
@@ -968,7 +969,9 @@ function protegerControles() {
     e.style.opacity = podeEditar() ? "1" : ".45";
     e.style.pointerEvents = podeEditar() ? "auto" : "none";
   });
-  document.getElementById("btnLogin").style.display = acesso.usuario ? "none" : "";
+  const exibirLogin = modoAdministrador && !acesso.usuario;
+  document.getElementById("btnLogin").hidden = !exibirLogin;
+  document.getElementById("btnLogin").style.display = exibirLogin ? "" : "none";
   document.getElementById("btnSair").style.display = acesso.usuario ? "" : "none";
   document.getElementById("btnSair").disabled = acesso.ocupado;
   document.getElementById("btnMigrar").hidden = !podeEditar();
@@ -1118,6 +1121,7 @@ function erroAmigavel(e) {
  return mensagens[e.code] || e.message || "Falha ao acessar o Firebase.";
 }
 window.entrarAdministrador=async()=>{
+ if (!modoAdministrador) return;
  if (location.protocol==="file:") { alert("Abra o site pelo endereço do GitHub Pages para fazer login."); return; }
  const botao=document.getElementById("btnLogin"); botao.disabled=true;
  try {
