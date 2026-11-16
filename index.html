@@ -1130,27 +1130,56 @@ window.sairAdministrador=async()=>{
  if (acesso.ocupado) return;
  try { await signOut(auth); } catch(e) { alert(erroAmigavel(e)); }
 };
+
+let encerrandoUid=null;
+async function recusarConta(usuario) {
+ if(auth.currentUser?.uid!==usuario.uid || encerrandoUid===usuario.uid) return;
+ encerrandoUid=usuario.uid;
+ acesso.usuario=null;
+ acesso.adminUid=null;
+ document.getElementById("uidStatus").textContent="";
+ atualizar();
+ try {
+  await signOut(auth);
+  alert("O login é exclusivo do administrador da Liga PAD. Você pode acompanhar os jogos sem entrar em uma conta.");
+ } catch(e) {
+  if(auth.currentUser?.uid===usuario.uid) { acesso.usuario=auth.currentUser; protegerControles(); }
+  alert("Não foi possível encerrar a sessão Google. Os controles administrativos continuam bloqueados. Recarregue a página e tente sair novamente.");
+ } finally {
+  if(encerrandoUid===usuario.uid) encerrandoUid=null;
+ }
+}
 onAuthStateChanged(auth,usuario=>{
- if(desligarAdmin) desligarAdmin();
- acesso.usuario=usuario; acesso.adminUid=null;
+ if(desligarAdmin) { desligarAdmin(); desligarAdmin=null; }
+ acesso.usuario=usuario;
+ acesso.adminUid=null;
  document.getElementById("uidStatus").textContent=usuario ? "UID desta conta: "+usuario.uid : "";
- document.getElementById("authStatus").textContent=usuario ? "Verificando permissão…" : "Modo consulta. Entre com Google para administrar.";
+ document.getElementById("authStatus").textContent=usuario ? "Verificando permissão…" : "Modo consulta. Login exclusivo do administrador.";
  protegerControles();
  if (!usuario) return;
  desligarAdmin=onSnapshot(adminRef,s=>{
   if(auth.currentUser?.uid!==usuario.uid) return;
   acesso.adminUid=s.exists() && typeof s.data().uid==="string" ? s.data().uid : null;
-  document.getElementById("authStatus").textContent=autorizado()
-   ? "Administrador conectado."
-   : acesso.adminUid ? "Conta conectada em modo consulta."
-   : "Administração ainda não configurada. Cadastre o UID da sua conta no documento configuracao/administrador.";
-  atualizar();
+  if(autorizado()) {
+   document.getElementById("authStatus").textContent="Administrador conectado.";
+   atualizar();
+  } else if(!s.metadata.fromCache) {
+   void recusarConta(usuario);
+  } else {
+   protegerControles();
+  }
  },e=>{
   if(auth.currentUser?.uid!==usuario.uid) return;
   acesso.adminUid=null;
-  document.getElementById("authStatus").textContent=erroAmigavel(e); protegerControles();
+  if(e.code==="permission-denied") {
+   void recusarConta(usuario);
+  } else {
+   document.getElementById("authStatus").textContent=erroAmigavel(e);
+   protegerControles();
+  }
  });
 });
+
 function decodificar(data) {
  if(data.versao!==1 || !Number.isSafeInteger(data.revisao) || data.revisao<1 || !data.placares || typeof data.placares!=="object")
   throw new Error("Dados publicados inválidos.");
