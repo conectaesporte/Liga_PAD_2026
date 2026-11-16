@@ -6,327 +6,170 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Liga PAD 2026</title>
 <style>
+
+:root {
+  --verde: #08784e; --verde-escuro: #075a3d; --azul: #102c47;
+  --texto: #183047; --muted: #60748a; --borda: #e1e9ef;
+  --sombra: 0 8px 28px rgba(16, 44, 71, .055);
+}
 * { box-sizing: border-box; }
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f1f4f8;
-    color: #172033;
-}
-header {
-    background: #123c2b;
-    color: white;
-    padding: 25px 18px;
-    text-align: center;
-}
-header h1 { margin: 0 0 8px; }
-header p { margin: 0; }
-nav {
-    background: #fff;
-    padding: 12px;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    box-shadow: 0 2px 5px #0001;
-}
-button, select, input {
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccd3dc;
-    font-size: 14px;
-}
-button {
-    background: #176b45;
-    color: white;
-    border: 0;
-    cursor: pointer;
-}
-button:hover { background: #0e5133; }
-nav button { background: #e8eee9; color: #123c2b; }
-nav button:hover { background: #cbded1; }
-main { max-width: 1100px; margin: 25px auto; padding: 0 15px; }
-.painel {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 18px;
-    box-shadow: 0 2px 8px #0000000d;
-}
-.cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
-    gap: 12px;
-}
-.card {
-    background: #eaf3ed;
-    padding: 18px;
-    border-radius: 8px;
-    text-align: center;
-}
-.card strong { display: block; font-size: 28px; color: #176b45; }
-h2 { color: #176b45; margin-top: 0; }
-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
-th { background: #eaf3ed; }
-.campo { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-.campo input, .campo select { flex: 1; min-width: 130px; }
-.aviso { color: #555; font-size: 14px; }
+body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: #f3f6fa; color: var(--texto); line-height: 1.5; }
+button, select, input { font: inherit; }
+button, select, input { border-radius: 10px; }
+button { border: 0; min-height: 44px; padding: 10px 18px; background: var(--verde); color: white; font-weight: 650; cursor: pointer; transition: background .18s, box-shadow .18s; }
+button:hover { background: var(--verde-escuro); }
+button:disabled { cursor: default; opacity: .55; }
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .tabela-scroll:focus-visible { outline: 3px solid #2288ce; outline-offset: 3px; }
+select, input { min-height: 44px; padding: 10px 12px; border: 1px solid #cbd9e4; background: #fff; color: var(--texto); }
+header { background: linear-gradient(115deg, #102c47, #103e43 65%, #075c40); color: white; border-top: 4px solid #37c48a; padding: 30px 20px; }
+.cabecalho-liga { max-width: 1100px; margin: auto; display: flex; align-items: center; gap: 26px; }
+.logo-liga { width: 138px; height: 138px; flex: 0 0 auto; overflow: hidden; border-radius: 20px; background: #fff; box-shadow: 0 8px 25px #0002; }
+.logo-liga[hidden] { display: none; }
+.logo-liga img { display: block; width: 100%; height: 100%; object-fit: contain; transform: scale(1.25); }
+.titulo-liga { min-width: 0; }
+.marca-etiqueta { display: block; color: #9be5c4; font-size: 11px; font-weight: 750; letter-spacing: .15em; margin-bottom: 8px; }
+.titulo-liga h1 { margin: 0 0 8px; font-size: clamp(23px, 3.2vw, 36px); line-height: 1.15; letter-spacing: -.035em; }
+.titulo-liga h1 span { color: #7be0b3; white-space: nowrap; }
+.titulo-liga p { margin: 3px 0; color: #e1f0ec; }
+.titulo-liga .escola { font-size: 13px; color: #b7cbd5; }
+nav { position: sticky; top: 0; z-index: 20; display: flex; justify-content: center; gap: 5px; padding: 12px 18px; overflow-x: auto; background: #fff; border-bottom: 1px solid var(--borda); box-shadow: 0 4px 18px #102c4705; }
+nav button { flex: 0 0 auto; background: transparent; color: var(--muted); white-space: nowrap; font-size: 14px; padding: 10px 15px; }
+nav button:hover { background: #edf5f2; color: var(--verde-escuro); }
+nav button.ativo, nav button[aria-current="page"] { background: var(--azul); color: white; box-shadow: 0 3px 8px #102c471a; }
+nav #btnLogin, nav #btnSair { border: 1px solid var(--borda); color: var(--verde-escuro); }
+main { max-width: 1140px; margin: 30px auto; padding: 0 20px; }
+.painel { background: #fff; border: 1px solid var(--borda); border-radius: 18px; padding: 26px; margin-bottom: 22px; box-shadow: var(--sombra); min-width: 0; }
+main section { scroll-margin-top: 92px; }
+h2 { margin: 0 0 18px; font-size: clamp(22px, 2.6vw, 27px); color: var(--azul); letter-spacing: -.025em; line-height: 1.25; }
+h3, h4 { color: var(--azul); }
+.kicker { margin: 0 0 7px; color: var(--verde); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.secao-topo { margin-bottom: 22px; }
+.secao-topo h2 { margin-bottom: 6px; }
+.secao-topo > p:last-child { color: var(--muted); font-size: 14px; margin: 0; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.card { position: relative; background: #f7f9fc; border: 1px solid #e5ecf2; border-radius: 14px; padding: 20px; min-width: 0; overflow: hidden; }
+.card strong { display: block; color: var(--azul); font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -.04em; line-height: 1.15; font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+.card span { font-size: 13px; color: var(--muted); }
+.card:last-child { background: #edf8f2; border-color: #d1eede; }
+.card:last-child strong { color: var(--verde); }
+.progresso-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 8px; }
+.progresso-topo p { margin: 0; font-size: 13px; color: var(--muted); }
+.progresso-trilho { height: 7px; border-radius: 20px; overflow: hidden; background: #e9eff4; }
+.progresso-barra { width: 0; height: 100%; background: linear-gradient(90deg, #0a8858, #48c58d); border-radius: inherit; }
+.atalhos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.atalho { text-align: left; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--azul); border-radius: 12px; }
+.atalho:hover { background: #1a425f; }
+.atalho.secundario { background: #f1f6f8; color: var(--azul); border: 1px solid #dce7ed; }
+.atalho.secundario:hover { background: #e5f0ec; }
+.atalho small { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; opacity: .8; }
+.atalho > b { font-size: 22px; }
+.campo { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin: 16px 0 24px; }
+.campo input, .campo select { flex: 1; min-width: 130px; max-width: 100%; }
+.aviso { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .oculto { display: none; }
 [data-admin-only][hidden] { display: none !important; }
-@media(max-width:600px) {
-    table { font-size: 12px; }
-    th,td { padding: 6px 3px; }
-}
-
-/* Identificação dos turnos */
-.titulo-turno {
-  background: #14532d;
-  color: white;
-  padding: 16px;
-  margin-top: 30px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-/* Identificação dos grupos */
-.titulo-grupo {
-  background: #d1fae5;
-  color: #064e3b;
-  padding: 12px;
-  margin-top: 20px;
-  border-left: 5px solid #16a34a;
-  border-radius: 5px;
-}
-
-/* Identificação das rodadas */
-.titulo-rodada {
-  background: #f1f5f9;
-  color: #334155;
-  padding: 10px;
-  margin-top: 15px;
-  border-radius: 5px;
-  font-size: 15px;
-}
-
-/* Espaçamento entre os jogos */
-#listaJogos .painel {
-  margin-bottom: 10px;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.placar-vitoria {
-  background-color: rgba(34, 197, 94, 0.18) !important;
-  border: 2px solid rgba(34, 197, 94, 0.5) !important;
-}
-
-.placar-derrota {
-  background-color: rgba(239, 68, 68, 0.16) !important;
-  border: 2px solid rgba(239, 68, 68, 0.45) !important;
-}
-
-.placar-empate {
-  background-color: rgba(245, 158, 11, 0.17) !important;
-  border: 2px solid rgba(245, 158, 11, 0.45) !important;
-}
-
-.status-jogo {
-  text-align: right;
-  margin-bottom: 8px;
-}
-
-.status-finalizado,
-.status-pendente {
-  display: inline-block;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.status-finalizado {
-  background: rgba(34, 197, 94, 0.15);
-  color: #166534;
-}
-
-
-.status-pendente {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-
-.destaque-campeao {
-  background: linear-gradient(135deg, #14532d, #16a34a);
-  color: white;
-  text-align: center;
-  padding: 30px;
-  margin-top: 25px;
-  border-radius: 12px;
-  border: 3px solid #eab308;
-}
-
-.destaque-campeao h1 {
-  color: #fef08a;
-  font-size: 30px;
-  margin: 15px 0;
-}
-
-.destaque-campeao h2 {
-  color: white;
-}
-
-/* Visual das fases finais */
-#finaisManha .painel,
-#finaisTarde .painel {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-left: 5px solid #15803d;
-  border-radius: 10px;
-  padding: 18px;
-  margin-bottom: 18px;
-}
-
-#finaisManha h4,
-#finaisTarde h4 {
-  color: #166534;
-  margin-top: 24px;
-  margin-bottom: 10px;
-  font-size: 18px;
-}
-
-#finaisManha .campo,
-#finaisTarde .campo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.chaveamento {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-  margin-top: 20px;
-}
-
-.coluna-semifinais,
-.coluna-final {
-  min-width: 0;
-}
-
-.coluna-final {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.chaveamento h3 {
-  color: #166534;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-@media (max-width: 800px) {
-  .chaveamento {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Placar compacto: equipes nas pontas e gols no centro, inclusive no celular. */
-.placar-jogo {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 52px 16px 52px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  margin: 12px 0;
-}
-.placar-jogo .nome-equipe {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  line-height: 1.3;
-  font-weight: 600;
-}
+[data-admin-only] .painel { margin-top: 18px; box-shadow: none; background: #f8fafb; }
+details.painel { padding: 18px 22px; }
+summary { cursor: pointer; font-weight: 650; }
+.botao-backup { display: inline-block; cursor: pointer; margin: 8px; font-size: 14px; color: var(--verde); font-weight: 650; }
+.titulo-turno { background: linear-gradient(110deg, var(--azul), #164a4b); color: white; padding: 19px 21px; margin: 28px 0 18px; border-radius: 13px; font-size: 18px; letter-spacing: .025em; }
+.titulo-grupo { background: #edf7f2; color: var(--verde-escuro); border-left: 4px solid #10a366; padding: 11px 15px; margin: 22px 0 14px; border-radius: 0 9px 9px 0; font-size: 15px; }
+.titulo-rodada { color: var(--muted); margin: 22px 0 12px; padding-bottom: 9px; border-bottom: 1px solid var(--borda); font-size: 11px; font-weight: 750; letter-spacing: .12em; }
+#listaJogos .partida { margin-bottom: 12px; padding: 16px 20px; border-radius: 13px; box-shadow: 0 3px 12px #102c4704; }
+.status-jogo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.numero-jogo { color: #76899b; font-size: 10px; font-weight: 700; letter-spacing: .1em; }
+.status-finalizado, .status-pendente { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 650; }
+.status-finalizado { background: #e5f7ec; color: #167347; }
+.status-pendente { background: #f0f3f7; color: #61758b; border: 1px solid #e3e9f0; }
+.status-finalizado::before, .status-pendente::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.placar-jogo { display: grid; grid-template-columns: minmax(0,1fr) 52px 16px 52px minmax(0,1fr); align-items: center; gap: 10px; margin: 4px 0; }
+.placar-jogo .nome-equipe { min-width: 0; overflow-wrap: anywhere; font-weight: 700; font-size: 15px; line-height: 1.35; }
 .placar-jogo .equipe-casa { text-align: left; }
 .placar-jogo .equipe-fora { text-align: right; }
-.placar-jogo > b { text-align: center; }
-.placar-jogo > input {
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  padding: 8px 2px;
-  text-align: center;
-  font-size: 16px;
-  color: #172033;
-  opacity: 1;
-  -webkit-text-fill-color: #172033;
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-.placar-jogo > input::-webkit-inner-spin-button,
-.placar-jogo > input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.placar-jogo > button {
-  grid-column: 1 / -1;
-  justify-self: end;
-  min-height: 44px;
-}
-.placar-jogo > select {
-  grid-column: 1 / -1;
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  font-size: 16px;
-}
-@media (max-width: 600px) {
-  .placar-jogo {
-    grid-template-columns: minmax(0, 1fr) 42px 12px 42px minmax(0, 1fr);
-    gap: 5px;
-  }
-  .placar-jogo .nome-equipe { font-size: 13px; }
-}
-
-
-/* Marca da Liga: a imagem original fica em uma moldura branca responsiva. */
-.cabecalho-liga {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-}
-.logo-liga {
-  width: 180px;
-  height: 180px;
-  flex: 0 0 auto;
-  overflow: hidden;
-  border-radius: 14px;
-  background: #fff;
-}
-.logo-liga[hidden] { display: none; }
-.logo-liga img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.25);
-}
-.titulo-liga { min-width: 0; }
-.titulo-liga h1 {
-  font-size: clamp(22px, 3vw, 32px);
-  line-height: 1.2;
-  overflow-wrap: anywhere;
+.placar-jogo > b { color: #8b9ba9; text-align: center; font-size: 12px; }
+.placar-jogo > input { width: 100%; min-width: 0; min-height: 48px; padding: 6px 2px; text-align: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--azul); -webkit-text-fill-color: var(--azul); opacity: 1; background: #f4f7fa; border: 1px solid #e0e8ef; border-radius: 10px; appearance: textfield; -moz-appearance: textfield; }
+.placar-jogo > input:disabled { opacity: 1; }
+.placar-jogo > input::-webkit-inner-spin-button, .placar-jogo > input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.placar-jogo > button { grid-column: 1 / -1; justify-self: end; margin-top: 6px; min-height: 44px; }
+.placar-jogo > select { grid-column: 1 / -1; width: 100%; min-width: 0; margin-top: 8px; font-size: 16px; }
+.placar-vitoria { background: #e3f5ea !important; border: 1px solid #8fd0a8 !important; }
+.placar-derrota { background: #fff1ef !important; border: 1px solid #efc0b7 !important; }
+.placar-empate { background: #fff7e5 !important; border: 1px solid #e5cb92 !important; }
+.tabela-scroll { overflow-x: auto; border: 1px solid var(--borda); border-radius: 13px; }
+table { width: 100%; min-width: 580px; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+th, td { padding: 14px 11px; border-bottom: 1px solid #edf1f5; text-align: center; }
+thead th { background: #f6f9fc; color: var(--muted); font-size: 10px; letter-spacing: .04em; }
+tbody th { text-align: left; color: var(--azul); font-weight: 650; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+tbody tr:hover { background: #f8fafc; }
+.zona-classificacao { background: #eef8f2; }
+.zona-classificacao td:first-child { border-left: 3px solid #0b985d; color: var(--verde); font-weight: 800; }
+.posicao { color: var(--muted); font-variant-numeric: tabular-nums; }
+.pontos { color: var(--azul); font-weight: 800; }
+.contexto-tabela { font-size: 15px; margin: 24px 0 12px; }
+.legenda-zona { color: var(--verde); font-size: 12px; margin-top: 12px; }
+.legenda-zona::before { content: ""; display: inline-block; width: 8px; height: 8px; background: #0b985d; border-radius: 50%; margin-right: 7px; }
+.grade-grupos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.grupo-equipes { min-width: 0; background: #f8fafc; border: 1px solid var(--borda); border-radius: 13px; padding: 18px; }
+.grupo-equipes h4 { margin: 0 0 12px; font-size: 13px; color: var(--verde); }
+.grupo-equipes ul { list-style: none; padding: 0; margin: 0; }
+.grupo-equipes li { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #e7edf2; font-size: 14px; font-weight: 600; }
+.numero-equipe { width: 27px; height: 27px; display: inline-flex; justify-content: center; align-items: center; border-radius: 8px; color: #567387; background: #e9eff4; font-size: 10px; font-weight: 750; flex-shrink: 0; }
+#finaisManha .painel, #finaisTarde .painel { background: #fff; border-left: 3px solid var(--verde); padding: 18px; border-radius: 13px; box-shadow: none; }
+#finaisManha h4, #finaisTarde h4 { font-size: 12px; letter-spacing: .035em; color: var(--muted); margin: 18px 0 10px; }
+.chaveamento { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin: 22px 0; }
+.coluna-semifinais, .coluna-final { min-width: 0; }
+.coluna-final { display: flex; flex-direction: column; justify-content: center; }
+.chaveamento h3 { font-size: 15px; margin: 0 0 16px; }
+.destaque-campeao { background: linear-gradient(135deg,#102c47,#0c6846); color: white; border: 1px solid #c5ac5f; padding: 25px 20px; border-radius: 15px; text-align: center; margin-top: 20px; }
+.destaque-campeao h2 { color: #e3ca82; font-size: 12px; letter-spacing: .07em; }
+.destaque-campeao h1 { color: white; font-size: 27px; margin: 12px 0; }
+.destaque-campeao p { font-size: 12px; color: #cce7dc; }
+hr { border: 0; border-top: 1px solid var(--borda); margin: 28px 0; }
+footer { max-width: 1100px; margin: 28px auto 35px; padding: 0 20px; text-align: center; font-size: 11px; color: #74879a; }
+footer strong { color: #4a6378; }
+@media (max-width: 800px) {
+  nav { justify-content: flex-start; }
+  .chaveamento { grid-template-columns: 1fr; gap: 18px; }
 }
 @media (max-width: 600px) {
-  .cabecalho-liga { flex-direction: column; gap: 16px; }
-  .logo-liga { width: 150px; height: 150px; }
+  header { padding: 22px 16px; }
+  .cabecalho-liga { gap: 16px; }
+  .logo-liga { width: 88px; height: 88px; border-radius: 14px; }
+  .marca-etiqueta { font-size: 8px; letter-spacing: .07em; margin-bottom: 6px; }
+  .titulo-liga h1 { font-size: 21px; margin-bottom: 6px; }
+  .titulo-liga p { font-size: 12px; }
+  .titulo-liga .escola { font-size: 10px; }
+  nav { padding: 10px 12px; gap: 4px; }
+  nav button { font-size: 12px; padding: 9px 13px; }
+  main { padding: 0 12px; margin: 18px auto; }
+  .painel { padding: 18px 14px; border-radius: 15px; margin-bottom: 16px; }
+  h2 { font-size: 22px; }
+  .cards { gap: 7px; }
+  .card { padding: 15px 10px; border-radius: 11px; }
+  .card strong { font-size: 30px; }
+  .card span { font-size: 10px; line-height: 1.35; display: block; }
+  .secao-topo { margin-bottom: 18px; }
+  .atalhos { gap: 8px; margin-top: 20px; }
+  .atalho { padding: 13px 11px; font-size: 12px; }
+  .atalho small { font-size: 10px; }
+  .progresso-topo { align-items: flex-start; }
+  .progresso-topo p { font-size: 11px; }
+  .titulo-turno { font-size: 15px; padding: 16px; margin-top: 24px; }
+  .titulo-grupo { font-size: 13px; }
+  #listaJogos .partida { padding: 13px 12px; }
+  .placar-jogo { grid-template-columns: minmax(0,1fr) 42px 10px 42px minmax(0,1fr); gap: 5px; }
+  .placar-jogo .nome-equipe { font-size: 12px; }
+  .placar-jogo > input { font-size: 20px; min-height: 46px; }
+  .campo { gap: 8px; margin-bottom: 20px; }
+  .campo select { font-size: 14px; }
+  .grade-grupos { grid-template-columns: 1fr; gap: 12px; }
+  .grupo-equipes { padding: 15px; }
+  #finaisManha .painel, #finaisTarde .painel { padding: 14px 10px; }
+  .aviso { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
 }
 
 </style>
@@ -343,20 +186,21 @@ th { background: #eaf3ed; }
            onerror="this.parentElement.hidden = true">
     </div>
     <div class="titulo-liga">
-      <h1>LIGA DE FUTSAL INTERCLASSE PAD 2026</h1>
+      <span class="marca-etiqueta">ESPORTE · RESPEITO · FAIR PLAY</span>
+      <h1>Liga de Futsal Interclasse <span>PAD 2026</span></h1>
       <p>Muito além do jogo!</p>
-      <p>E.E.M. Padre Arimateia Diniz</p>
+      <p class="escola">E.E.M. Padre Arimateia Diniz</p>
     </div>
   </div>
 </header>
 
-<nav>
-    <button onclick="mostrar('inicio')">Início</button>
-    <button onclick="mostrar('jogos')">Jogos e resultados</button>
-    <button onclick="mostrar('classificacao')">Classificação</button>
-    <button onclick="mostrar('equipes')">Equipes</button>
+<nav aria-label="Navegação da Liga">
+    <button data-painel="inicio" class="ativo" aria-current="page" onclick="mostrar('inicio')">Início</button>
+    <button data-painel="jogos" onclick="mostrar('jogos')">Jogos e resultados</button>
+    <button data-painel="classificacao" onclick="mostrar('classificacao')">Classificação</button>
+    <button data-painel="equipes" onclick="mostrar('equipes')">Equipes</button>
 
-<button onclick="mostrar('finais')">🏆 Fases Finais</button>
+<button data-painel="finais" onclick="mostrar('finais')">🏆 Fases Finais</button>
 
 <button id="btnLogin" onclick="entrarAdministrador()">
   🔐 Entrar como administrador
@@ -482,11 +326,25 @@ service cloud.firestore {
 </pre>
 </details>
 <section id="inicio" class="painel">
-    <h2>Painel da competição</h2>
+    <div class="secao-topo">
+      <p class="kicker">Visão geral</p>
+      <h2>Painel da competição</h2>
+      <p>Todos os turnos. Cada rodada. Muito além do jogo.</p>
+    </div>
     <div class="cards">
-        <div class="card"><strong id="totalEquipes">0</strong>Equipes</div>
-        <div class="card"><strong id="totalJogos">0</strong>Jogos cadastrados</div>
-        <div class="card"><strong id="jogosFinalizados">0</strong>Jogos finalizados</div>
+      <div class="card"><strong id="totalEquipes">0</strong><span>Equipes na disputa</span></div>
+      <div class="card"><strong id="totalJogos">0</strong><span>Jogos da fase de grupos</span></div>
+      <div class="card"><strong id="jogosFinalizados">0</strong><span>Jogos finalizados</span></div>
+    </div>
+    <div class="progresso-topo">
+      <p>Fase de grupos</p><p id="resumoProgresso">Aguardando resultados</p>
+    </div>
+    <div class="progresso-trilho" id="progressoCompeticao" role="progressbar" aria-label="Jogos concluídos da fase de grupos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="progresso-barra" id="progressoBarra"></div>
+    </div>
+    <div class="atalhos">
+      <button class="atalho" onclick="mostrar('jogos')"><span>Jogos e resultados<small>Acompanhe os placares</small></span><b aria-hidden="true">→</b></button>
+      <button class="atalho secundario" onclick="mostrar('classificacao')"><span>Classificação<small>Veja a disputa nos grupos</small></span><b aria-hidden="true">→</b></button>
     </div>
     <div data-admin-only hidden>
     <h3>Organização</h3>
@@ -521,14 +379,15 @@ service cloud.firestore {
 </section>
 
 <section id="jogos" class="painel oculto">
+    <p class="kicker">Dentro de quadra</p>
     <h2>Jogos e resultados</h2>
     <div class="campo">
-        <select id="filtroTurno" onchange="listarJogos()">
+        <select aria-label="Filtrar jogos por turno" id="filtroTurno" onchange="listarJogos()">
             <option value="">Todos os turnos</option>
             <option>Manhã</option>
             <option>Tarde</option>
         </select>
-        <select id="filtroGrupo" onchange="listarJogos()">
+        <select aria-label="Filtrar jogos por grupo" id="filtroGrupo" onchange="listarJogos()">
             <option value="">Todos os grupos</option>
             <option>A</option><option>B</option>
         </select>
@@ -537,12 +396,13 @@ service cloud.firestore {
 </section>
 
 <section id="classificacao" class="painel oculto">
+    <p class="kicker">A disputa por uma vaga</p>
     <h2>Classificação</h2>
     <div class="campo">
-        <select id="classTurno" onchange="listarClassificacao()">
+        <select aria-label="Turno da classificação" id="classTurno" onchange="listarClassificacao()">
             <option>Manhã</option><option>Tarde</option>
         </select>
-        <select id="classGrupo" onchange="listarClassificacao()">
+        <select aria-label="Grupo da classificação" id="classGrupo" onchange="listarClassificacao()">
             <option>A</option><option>B</option>
         </select>
     </div>
@@ -550,12 +410,14 @@ service cloud.firestore {
 </section>
 
 <section id="equipes" class="painel oculto">
+    <p class="kicker">Quem faz a Liga</p>
     <h2>Equipes participantes</h2>
     <div id="listaEquipes"></div>
 </section>
 
 <section id="finais" class="painel oculto">
-  <h2>🏆 Fases Finais - Liga PAD 2026</h2>
+  <p class="kicker">O caminho até o título</p>
+  <h2>🏆 Fases finais</h2>
 
   <p>Confira as semifinais, finais e campeões
   de cada turno.</p>
@@ -575,6 +437,7 @@ service cloud.firestore {
 
 
 </main>
+<footer><strong>Liga PAD 2026</strong> · E.E.M. Padre Arimateia Diniz<br>Muito além do jogo.</footer>
 
 <script>
 const equipes = [
@@ -636,15 +499,30 @@ if (!jogos) {
 
 function salvar() {}
 function mostrar(id) {
+    if (!["inicio","jogos","classificacao","equipes","finais"].includes(id)) return;
     document.querySelectorAll("main section").forEach(s=>s.classList.add("oculto"));
     document.getElementById(id).classList.remove("oculto");
+    atualizarNavegacao(id);
     atualizar();
+}
+function atualizarNavegacao(id) {
+    document.querySelectorAll("nav [data-painel]").forEach(botao=>{
+      const selecionado=botao.dataset.painel===id;
+      botao.classList.toggle("ativo",selecionado);
+      if(selecionado) botao.setAttribute("aria-current","page");
+      else botao.removeAttribute("aria-current");
+    });
 }
 function atualizar() {
     document.getElementById("totalEquipes").textContent=equipes.length;
     document.getElementById("totalJogos").textContent=jogos.length;
     document.getElementById("jogosFinalizados").textContent=
         jogos.filter(j=>j.golsCasa!=="" && j.golsFora!=="").length;
+    const finalizados=jogos.filter(j=>j.golsCasa!=="" && j.golsFora!=="").length;
+    const percentual=jogos.length ? Math.round(finalizados/jogos.length*100) : 0;
+    document.getElementById("resumoProgresso").textContent=finalizados+" de "+jogos.length+" jogos concluídos";
+    document.getElementById("progressoBarra").style.width=percentual+"%";
+    document.getElementById("progressoCompeticao").setAttribute("aria-valuenow",String(percentual));
     listarJogos(); listarClassificacao(); listarEquipes(); listarFinais();
 }
 function listarJogos() {
@@ -709,8 +587,8 @@ const statusJogo = finalizado
   : '<span class="status-pendente">Pendente</span>';
 
           html += `
-            <div class="painel">
-                <div class="status-jogo">${statusJogo}</div>
+            <div class="painel partida">
+                <div class="status-jogo"><span class="numero-jogo">JOGO ${String(j.id+1).padStart(2,"0")}</span>${statusJogo}</div>
               <div class="placar-jogo">
                 <span class="nome-equipe equipe-casa">${j.casa}</span>
                 <input type="number" min="0" id="c${j.id}" aria-label="Gols de ${j.casa}"
@@ -802,22 +680,29 @@ function calcular(turno,grupo) {
     tabela.forEach(t=>t.sg=t.gp-t.gc);
     return tabela.sort((a,b)=>b.pontos-a.pontos||b.sg-a.sg||b.gp-a.gp);
 }
+
 function listarClassificacao() {
-    let turno=document.getElementById("classTurno").value;
-    let grupo=document.getElementById("classGrupo").value;
-    let tabela=calcular(turno,grupo);
+    const turno=document.getElementById("classTurno").value;
+    const grupo=document.getElementById("classGrupo").value;
+    const tabela=calcular(turno,grupo);
+    const iniciou=tabela.some(t=>t.jogos>0);
     document.getElementById("tabelaClassificacao").innerHTML=`
-    <table><thead><tr><th>Equipe</th><th>PTS</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead>
-    <tbody>${tabela.map(t=>`<tr><td>${t.nome}</td><td>${t.pontos}</td><td>${t.jogos}</td><td>${t.v}</td><td>${t.e}</td><td>${t.d}</td><td>${t.gp}</td><td>${t.gc}</td><td>${t.sg}</td></tr>`).join("")}</tbody></table>
-    <p class="aviso">Desempate: pontos, saldo de gols e gols marcados. Confronto direto será conferido em caso de igualdade persistente.</p>`;
+    <h3 class="contexto-tabela">Turno ${turno} · Grupo ${grupo}</h3>
+    <div class="tabela-scroll" tabindex="0" role="region" aria-label="Classificação do turno ${turno}, grupo ${grupo}. Deslize para ver todas as colunas.">
+    <table><thead><tr><th scope="col">POS</th><th scope="col">EQUIPE</th><th scope="col">PTS</th><th scope="col">J</th><th scope="col">V</th><th scope="col">E</th><th scope="col">D</th><th scope="col">GP</th><th scope="col">GC</th><th scope="col">SG</th></tr></thead>
+    <tbody>${tabela.map((t,i)=>`<tr class="${iniciou && i<2 ? 'zona-classificacao' : ''}"><td class="posicao">${i+1}</td><th scope="row">${t.nome}</th><td class="pontos">${t.pontos}</td><td>${t.jogos}</td><td>${t.v}</td><td>${t.e}</td><td>${t.d}</td><td>${t.gp}</td><td>${t.gc}</td><td>${t.sg}</td></tr>`).join("")}</tbody></table>
+    </div>
+    ${iniciou ? '<p class="legenda-zona">Destaque para as duas primeiras posições do grupo.</p>' : ''}
+    <p class="aviso">A classificação é provisória durante a fase de grupos. Desempate: pontos, saldo de gols e gols marcados. Confronto direto será conferido em caso de igualdade persistente.</p>`;
 }
 function listarEquipes() {
     document.getElementById("listaEquipes").innerHTML=
     ["Manhã","Tarde"].map(turno=>`
-    <h3>Turno ${turno}</h3>`+
-    ["A","B"].map(grupo=>`<h4>Grupo ${grupo}</h4><ul>`+
-    equipes.filter(e=>e[0]===turno&&e[1]===grupo).map(e=>`<li>${e[2]}</li>`).join("")+
-    `</ul>`).join("")).join("");
+    <h3 class="titulo-turno">Turno ${turno}</h3>
+    <div class="grade-grupos">`+
+    ["A","B"].map(grupo=>`<div class="grupo-equipes"><h4>GRUPO ${grupo}</h4><ul>`+
+    equipes.filter(e=>e[0]===turno&&e[1]===grupo).map((e,i)=>`<li><span class="numero-equipe" aria-hidden="true">${String(i+1).padStart(2,"0")}</span>${e[2]}</li>`).join("")+
+    `</ul></div>`).join("")+`</div>`).join("");
 }
 
 let resultadosFinais = {};
