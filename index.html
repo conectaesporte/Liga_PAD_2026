@@ -264,6 +264,118 @@ th { background: #eaf3ed; }
 </nav>
 
 <main>
+<div class="painel" aria-live="polite"><p id="authStatus">Carregando acesso seguro…</p><p id="syncStatus">Conectando aos resultados…</p><p id="uidStatus" style="overflow-wrap:anywhere"></p><button id="btnMigrar" onclick="importarDadosLocais()" hidden>Importar resultados antigos deste navegador</button></div>
+<details class="painel"><summary>Configuração inicial do administrador</summary>
+<p>1. Publique este index.html no GitHub Pages e entre com sua conta Google. Copie o UID exibido.</p>
+<p>2. No Firebase, abra Firestore Database → Regras e publique o modelo abaixo. Revise antes de divulgar amplamente. Ele permite consultar os placares e exige o UID configurado para gravar.</p>
+<p>3. Em Firestore Database → Dados, crie a coleção <b>configuracao</b>, documento <b>administrador</b>, campo <b>uid</b> (string) com o UID da sua conta. O cadastro do administrador é feito somente pelo console.</p>
+<p>4. Confira se Google está ativado no Authentication e se <b>professorhelison.github.io</b> está nos domínios autorizados. A administração será liberada automaticamente quando o UID estiver configurado.</p>
+<p>Para preservar resultados antigos, importe no mesmo navegador e endereço do site antigo ou restaure um backup JSON.</p>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto" id="regrasFirebase">// Modelo: configuracao/administrador { uid: string }, criado somente no console.
+// ligas/pad2026: versao (1), revisao (inteiro crescente), atualizadoEm (timestamp),
+// placares (32 chaves de 0 a 31, cada {c,f}: vazios ou inteiros 0..999),
+// resultadosFinais (até 6 chaves, equipes do turno e placares 0..999).
+// O site exibe resultados em modo consulta; somente a configuração de UID é privada.
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function isAuthenticated() { return request.auth != null; }
+  function isOwner() {
+   return isAuthenticated()
+    &amp;&amp; request.auth.token.firebase.sign_in_provider == 'google.com'
+    &amp;&amp; request.auth.uid == get(/databases/$(database)/documents/configuracao/administrador).data.uid;
+  }
+  function score(n) { return n is int &amp;&amp; n &gt;= 0 &amp;&amp; n &lt;= 999; }
+  function pair(p) {
+   return p is map &amp;&amp; p.keys().hasAll(['c','f']) &amp;&amp; p.keys().hasOnly(['c','f'])
+    &amp;&amp; ((p.c == '' &amp;&amp; p.f == '') || (score(p.c) &amp;&amp; score(p.f)));
+  }
+  function finalResult(r, names) {
+   return r is map
+    &amp;&amp; r.keys().hasAll(['casa','fora','golsCasa','golsFora','vencedor'])
+    &amp;&amp; r.keys().hasOnly(['casa','fora','golsCasa','golsFora','vencedor'])
+    &amp;&amp; r.casa in names &amp;&amp; r.fora in names &amp;&amp; r.casa != r.fora
+    &amp;&amp; score(r.golsCasa) &amp;&amp; score(r.golsFora)
+    &amp;&amp; r.vencedor in [r.casa,r.fora]
+    &amp;&amp; (r.golsCasa &lt;= r.golsFora || r.vencedor == r.casa)
+    &amp;&amp; (r.golsFora &lt;= r.golsCasa || r.vencedor == r.fora);
+  }
+  function finalManha(r) {
+   return finalResult(r, ['1º ANO A','2º ANO A','2º ANO B','3º ANO A','3º ANO B','1º ANO B','2º ANO C','2º ANO D','3º ANO C','3º ANO D']);
+  }
+  function finalTarde(r) {
+   return finalResult(r, ['1º ANO C','2º ANO E','2º ANO G','3º ANO E','1º ANO D','2º ANO F','3º ANO F','3º ANO G']);
+  }
+  function validFinals(f) {
+   return f is map &amp;&amp; f.size() &lt;= 6
+    &amp;&amp; f.keys().hasOnly(['Manhã-semi1','Manhã-semi2','Manhã-final','Tarde-semi1','Tarde-semi2','Tarde-final'])
+    &amp;&amp; (!('Manhã-semi1' in f) || finalManha(f['Manhã-semi1']))
+    &amp;&amp; (!('Manhã-semi2' in f) || finalManha(f['Manhã-semi2']))
+    &amp;&amp; (!('Manhã-final' in f) || finalManha(f['Manhã-final']))
+    &amp;&amp; (!('Tarde-semi1' in f) || finalTarde(f['Tarde-semi1']))
+    &amp;&amp; (!('Tarde-semi2' in f) || finalTarde(f['Tarde-semi2']))
+    &amp;&amp; (!('Tarde-final' in f) || finalTarde(f['Tarde-final']));
+  }
+  function validScores(p) {
+   return p is map &amp;&amp; p.size() == 32
+    &amp;&amp; p.keys().hasOnly(['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'])
+    &amp;&amp; pair(p['0'])
+    &amp;&amp; pair(p['1'])
+    &amp;&amp; pair(p['2'])
+    &amp;&amp; pair(p['3'])
+    &amp;&amp; pair(p['4'])
+    &amp;&amp; pair(p['5'])
+    &amp;&amp; pair(p['6'])
+    &amp;&amp; pair(p['7'])
+    &amp;&amp; pair(p['8'])
+    &amp;&amp; pair(p['9'])
+    &amp;&amp; pair(p['10'])
+    &amp;&amp; pair(p['11'])
+    &amp;&amp; pair(p['12'])
+    &amp;&amp; pair(p['13'])
+    &amp;&amp; pair(p['14'])
+    &amp;&amp; pair(p['15'])
+    &amp;&amp; pair(p['16'])
+    &amp;&amp; pair(p['17'])
+    &amp;&amp; pair(p['18'])
+    &amp;&amp; pair(p['19'])
+    &amp;&amp; pair(p['20'])
+    &amp;&amp; pair(p['21'])
+    &amp;&amp; pair(p['22'])
+    &amp;&amp; pair(p['23'])
+    &amp;&amp; pair(p['24'])
+    &amp;&amp; pair(p['25'])
+    &amp;&amp; pair(p['26'])
+    &amp;&amp; pair(p['27'])
+    &amp;&amp; pair(p['28'])
+    &amp;&amp; pair(p['29'])
+    &amp;&amp; pair(p['30'])
+    &amp;&amp; pair(p['31']);
+  }
+  function validState(d) {
+   return d.keys().hasAll(['versao','revisao','atualizadoEm','placares','resultadosFinais'])
+    &amp;&amp; d.keys().hasOnly(['versao','revisao','atualizadoEm','placares','resultadosFinais'])
+    &amp;&amp; d.versao == 1 &amp;&amp; d.revisao is int &amp;&amp; d.revisao &gt;= 1 &amp;&amp; d.revisao &lt;= 1000000000
+    &amp;&amp; d.atualizadoEm == request.time
+    &amp;&amp; validScores(d.placares) &amp;&amp; validFinals(d.resultadosFinais);
+  }
+  match /configuracao/administrador {
+   allow get: if isAuthenticated();
+   allow list, create, update, delete: if false;
+  }
+  match /ligas/pad2026 {
+   allow get: if true;
+   allow list: if false;
+   allow create: if isOwner() &amp;&amp; validState(request.resource.data) &amp;&amp; request.resource.data.revisao == 1;
+   allow update: if isOwner() &amp;&amp; validState(request.resource.data)
+    &amp;&amp; request.resource.data.revisao == resource.data.revisao + 1;
+   allow delete: if false;
+  }
+  match /{document=**} { allow read, write: if false; }
+ }
+}
+</pre>
+</details>
 <section id="inicio" class="painel">
     <h2>Painel da competição</h2>
     <div class="cards">
@@ -273,7 +385,7 @@ th { background: #eaf3ed; }
     </div>
     <h3>Organização</h3>
     <p>As competições da manhã e da tarde são independentes. Cada turno terá sua própria classificação, semifinais e final.</p>
-    <p class="aviso">Os dados são salvos neste navegador e neste computador.</p>
+    <p class="aviso">Os resultados publicados são sincronizados com o Firebase. Apenas o administrador pode alterar placares e restaurar backups.</p>
 
 <div class="painel">
   <h3>💾 Segurança dos Resultados</h3>
@@ -406,7 +518,7 @@ const confrontos = [
 ["Tarde","B",3,"2º ANO F","3º ANO F"]
 ];
 
-let jogos = JSON.parse(localStorage.getItem("ligaPAD_jogos") || "null");
+let jogos = null;
 if (!jogos) {
     jogos = confrontos.map((c,i)=>({
         id:i, turno:c[0], grupo:c[1], rodada:c[2],
@@ -415,9 +527,7 @@ if (!jogos) {
     salvar();
 }
 
-function salvar() {
-    localStorage.setItem("ligaPAD_jogos",JSON.stringify(jogos));
-}
+function salvar() {}
 function mostrar(id) {
     document.querySelectorAll("main section").forEach(s=>s.classList.add("oculto"));
     document.getElementById(id).classList.remove("oculto");
@@ -519,7 +629,7 @@ const statusJogo = finalizado
 function registrar(id) {
     let c=document.getElementById("c"+id).value;
     let f=document.getElementById("f"+id).value;
-    if(c===""||f===""||Number(c)<0||Number(f)<0){
+    if(c===""||f===""||!placarValido(Number(c))||!placarValido(Number(f))){
         alert("Informe os dois placares corretamente.");return;
     }
     
@@ -532,7 +642,7 @@ verificarResultadosFinais(jogos[id].turno);
 
 atualizar();
 
-    alert("Resultado registrado!");
+    
 }
 
 function verificarResultadosFinais(turno) {
@@ -563,10 +673,7 @@ function verificarResultadosFinais(turno) {
   if (alterou) {
     delete resultadosFinais[`${turno}-final`];
 
-    localStorage.setItem(
-      "ligaPAD_resultadosFinais",
-      JSON.stringify(resultadosFinais)
-    );
+    
   }
 }
 function calcular(turno,grupo) {
@@ -606,9 +713,7 @@ function listarEquipes() {
     `</ul>`).join("")).join("");
 }
 
-let resultadosFinais = JSON.parse(
-  localStorage.getItem("ligaPAD_resultadosFinais") || "{}"
-);
+let resultadosFinais = {};
 
 
 function salvarResultadoFinal(turno, fase, casa, fora) {
@@ -628,8 +733,7 @@ function salvarResultadoFinal(turno, fase, casa, fora) {
   const gc = Number(golsCasa);
   const gf = Number(golsFora);
 
-  if (!Number.isInteger(gc) || !Number.isInteger(gf) ||
-      gc < 0 || gf < 0) {
+  if (!placarValido(gc) || !placarValido(gf)) {
     alert("Informe placares válidos.");
     return;
   }
@@ -675,10 +779,7 @@ resultadosFinais[`${turno}-${fase}`] = {
     vencedor
   };
 
-  localStorage.setItem(
-    "ligaPAD_resultadosFinais",
-    JSON.stringify(resultadosFinais)
-  );
+  
 
   listarFinais();
 }
@@ -705,78 +806,6 @@ function fazerBackup() {
   link.click();
 
   URL.revokeObjectURL(url);
-}
-
-function restaurarBackup(evento) {
-  const arquivo = evento.target.files[0];
-  if (!arquivo) return;
-
-  const leitor = new FileReader();
-
-  leitor.onload = function(e) {
-    try {
-      const dados = JSON.parse(e.target.result);
-
-      if (
-        dados.versao !== 1 ||
-        !Array.isArray(dados.jogos) ||
-        !dados.resultadosFinais ||
-        typeof dados.resultadosFinais !== "object" ||
-        Array.isArray(dados.resultadosFinais)
-      ) {
-        throw new Error("Arquivo de backup inválido.");
-      }
-
-      const estruturaValida =
-        dados.jogos.length === jogos.length &&
-        dados.jogos.every((j, i) =>
-          j.id === jogos[i].id &&
-          j.turno === jogos[i].turno &&
-          j.grupo === jogos[i].grupo &&
-          j.casa === jogos[i].casa &&
-          j.fora === jogos[i].fora
-        );
-
-      if (!estruturaValida) {
-        throw new Error(
-          "Este backup não corresponde aos jogos da Liga PAD 2026."
-        );
-      }
-
-      if (!confirm(
-        "Deseja restaurar este backup? Os resultados atuais serão substituídos."
-      )) return;
-
-      const jogosRestaurados = dados.jogos.map(j => ({ ...j }));
-
-      localStorage.setItem(
-        "ligaPAD_jogos",
-        JSON.stringify(jogosRestaurados)
-      );
-
-      localStorage.setItem(
-        "ligaPAD_resultadosFinais",
-        JSON.stringify(dados.resultadosFinais)
-      );
-
-      jogos.splice(0, jogos.length, ...jogosRestaurados);
-      resultadosFinais = { ...dados.resultadosFinais };
-
-      atualizar();
-      alert("Backup restaurado com sucesso!");
-    } catch (erro) {
-      alert("Erro ao restaurar: " + erro.message);
-    } finally {
-      evento.target.value = "";
-    }
-  };
-
-  leitor.onerror = function() {
-    alert("Não foi possível ler o arquivo.");
-    evento.target.value = "";
-  };
-
-  leitor.readAsText(arquivo);
 }
 
 function listarFinais() {
@@ -845,8 +874,8 @@ const criarPartida = (fase, equipes) => {
 
 <select id="vencedor-${turno}-${fase}">
   <option value="">Vencedor nos pênaltis</option>
-  <option value="${equipes[0]}">${equipes[0]}</option>
-  <option value="${equipes[1]}">${equipes[1]}</option>
+  <option ${resultado?.vencedor === equipes[0] ? "selected" : ""} value="${equipes[0]}">${equipes[0]}</option>
+  <option ${resultado?.vencedor === equipes[1] ? "selected" : ""} value="${equipes[1]}">${equipes[1]}</option>
 </select>
 
         <button onclick='salvarResultadoFinal(
@@ -925,32 +954,246 @@ destino.innerHTML = `
   });
 }
 
+
+/* A autorização efetiva é conferida pelas regras do Firestore.
+   O documento configuracao/administrador só pode ser criado no console. */
+let acesso = { usuario:null, adminUid:null, pronto:false, ocupado:false, revisao:0 };
+let publicarNaNuvem = null;
+let sincronizacaoPendente = null;
+function placarValido(n) { return Number.isSafeInteger(n) && n >= 0 && n <= 999; }
+function autorizado() {
+  return !!(acesso.usuario && acesso.adminUid && acesso.usuario.uid === acesso.adminUid);
+}
+function podeEditar() { return autorizado() && acesso.pronto && !acesso.ocupado; }
+function mensagemSync(texto) { document.getElementById("syncStatus").textContent = texto; }
+function protegerControles() {
+  document.querySelectorAll('#listaJogos input, #listaJogos button, #finais input, #finais select, #finais button, #arquivoBackup').forEach(e => e.disabled = !podeEditar());
+  document.querySelectorAll('label[for="arquivoBackup"]').forEach(e => {
+    e.style.opacity = podeEditar() ? "1" : ".45";
+    e.style.pointerEvents = podeEditar() ? "auto" : "none";
+  });
+  document.getElementById("btnLogin").style.display = acesso.usuario ? "none" : "";
+  document.getElementById("btnSair").style.display = acesso.usuario ? "" : "none";
+  document.getElementById("btnSair").disabled = acesso.ocupado;
+  document.getElementById("btnMigrar").hidden = !podeEditar();
+}
+const atualizarOriginal = atualizar;
+atualizar = function() { atualizarOriginal(); protegerControles(); };
+const listarJogosOriginal = listarJogos;
+listarJogos = function() { listarJogosOriginal(); protegerControles(); };
+const listarFinaisOriginal = listarFinais;
+listarFinais = function() { listarFinaisOriginal(); protegerControles(); };
+function estadoAtual() { return JSON.parse(JSON.stringify({jogos, resultadosFinais})); }
+function aplicarEstado(dados) {
+  jogos = dados.jogos;
+  resultadosFinais = dados.resultadosFinais;
+  atualizar();
+}
+function validarEstado(dados) {
+  if (!dados || !Array.isArray(dados.jogos) || dados.jogos.length !== confrontos.length ||
+      !dados.resultadosFinais || typeof dados.resultadosFinais !== "object" || Array.isArray(dados.resultadosFinais))
+    throw new Error("Estrutura de resultados inválida.");
+  const lista = dados.jogos.map((j,i) => {
+    const c = confrontos[i];
+    if (!j || j.id !== i || j.turno !== c[0] || j.grupo !== c[1] || j.rodada !== c[2] ||
+        j.casa !== c[3] || j.fora !== c[4] ||
+        !((j.golsCasa === "" && j.golsFora === "") || (placarValido(j.golsCasa) && placarValido(j.golsFora))))
+      throw new Error("Jogo ou placar inválido no backup.");
+    return {id:i,turno:c[0],grupo:c[1],rodada:c[2],casa:c[3],fora:c[4],golsCasa:j.golsCasa,golsFora:j.golsFora};
+  });
+  const finais = {};
+  for (const [chave,r] of Object.entries(dados.resultadosFinais)) {
+    const turno = chave.split("-")[0], fase = chave.split("-")[1];
+    const times = equipes.filter(e=>e[0]===turno).map(e=>e[2]);
+    if (!["Manhã","Tarde"].includes(turno) || !["semi1","semi2","final"].includes(fase) ||
+        chave !== turno+"-"+fase || !r || !times.includes(r.casa) || !times.includes(r.fora) || r.casa === r.fora ||
+        !placarValido(r.golsCasa) || !placarValido(r.golsFora) || ![r.casa,r.fora].includes(r.vencedor) ||
+        (r.golsCasa>r.golsFora && r.vencedor!==r.casa) || (r.golsFora>r.golsCasa && r.vencedor!==r.fora))
+      throw new Error("Resultado de fase final inválido.");
+    finais[chave] = {casa:r.casa,fora:r.fora,golsCasa:r.golsCasa,golsFora:r.golsFora,vencedor:r.vencedor};
+  }
+  return {jogos:lista,resultadosFinais:finais};
+}
+function normalizarFinais() {
+  for (const turno of ["Manhã","Tarde"]) {
+    verificarResultadosFinais(turno);
+    const a=resultadosFinais[turno+"-semi1"], b=resultadosFinais[turno+"-semi2"], f=resultadosFinais[turno+"-final"];
+    if (!jogos.filter(j=>j.turno===turno).every(j=>j.golsCasa!=="" && j.golsFora!=="")) {
+      for (const fase of ["semi1","semi2","final"]) delete resultadosFinais[turno+"-"+fase];
+    } else if (f && (!a || !b || f.casa!==a.vencedor || f.fora!==b.vencedor)) {
+      delete resultadosFinais[turno+"-final"];
+    }
+  }
+}
+async function alterarResultados(mutacao) {
+  if (!podeEditar() || !publicarNaNuvem) { alert("Entre com a conta do administrador e aguarde a conexão para editar."); return false; }
+  const anterior=estadoAtual();
+  let proximo;
+  try {
+    mutacao();
+    normalizarFinais();
+    proximo=validarEstado(estadoAtual());
+  } catch(e) { aplicarEstado(anterior); alert(e.message); return false; }
+  aplicarEstado(anterior);
+  if (JSON.stringify(anterior)===JSON.stringify(proximo)) return false;
+  acesso.ocupado=true; protegerControles(); mensagemSync("Salvando no Firebase…");
+  try {
+    const novaRevisao=await publicarNaNuvem(proximo,acesso.revisao);
+    acesso.revisao=novaRevisao;
+    aplicarEstado(proximo);
+    mensagemSync("Resultado salvo no Firebase.");
+    return true;
+  } catch(e) {
+    mensagemSync("Alteração não salva. "+e.message);
+    alert("Não foi possível salvar: "+e.message);
+    return false;
+  } finally {
+    acesso.ocupado=false;
+    if (sincronizacaoPendente) { const pendente=sincronizacaoPendente; sincronizacaoPendente=null; pendente(); }
+    protegerControles();
+  }
+}
+const registrarOriginal=registrar;
+registrar = async function(id) {
+  if (!Number.isInteger(id) || !jogos[id]) return;
+  return alterarResultados(()=>registrarOriginal(id));
+};
+const salvarFinalOriginal=salvarResultadoFinal;
+salvarResultadoFinal=async function(turno,fase,casa,fora) {
+  if (!["Manhã","Tarde"].includes(turno) || !["semi1","semi2","final"].includes(fase)) return;
+  return alterarResultados(()=>salvarFinalOriginal(turno,fase,casa,fora));
+};
+restaurarBackup=async function(evento) {
+  const arquivo=evento.target.files?.[0];
+  try {
+    if (!arquivo) return;
+    if (!podeEditar()) throw new Error("Apenas o administrador pode restaurar.");
+    if (arquivo.size>100000) throw new Error("Backup excede o tamanho permitido.");
+    const dados=JSON.parse(await arquivo.text());
+    if (dados.versao!==1) throw new Error("Versão de backup inválida.");
+    const validado=validarEstado(dados);
+    if (!confirm("Restaurar este backup no Firebase? Os resultados publicados serão substituídos.")) return;
+    if (await alterarResultados(()=>{ jogos=validado.jogos; resultadosFinais=validado.resultadosFinais; })) alert("Backup restaurado no Firebase.");
+  } catch(e) { alert("Erro ao restaurar: "+e.message); }
+  finally { evento.target.value=""; }
+};
+async function importarDadosLocais() {
+  try {
+    if (!podeEditar()) throw new Error("Apenas o administrador pode importar.");
+    const dados=validarEstado({
+      jogos:JSON.parse(localStorage.getItem("ligaPAD_jogos")||"null"),
+      resultadosFinais:JSON.parse(localStorage.getItem("ligaPAD_resultadosFinais")||"{}")
+    });
+    if (!confirm("Publicar os resultados antigos deste navegador? Eles substituirão os resultados no Firebase.")) return;
+    if (await alterarResultados(()=>{ jogos=dados.jogos; resultadosFinais=dados.resultadosFinais; })) alert("Resultados antigos importados.");
+  } catch(e) { alert("Importação não realizada: "+e.message+" Você também pode restaurar um backup JSON."); }
+}
+window.entrarAdministrador=()=>alert("Firebase ainda não carregou. Confira a conexão e recarregue a página.");
+window.sairAdministrador=()=>{};
 atualizar();
+
 </script>
+
+
 <script type="module">
-  import { initializeApp } from
-    "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
-
-  import { getAuth } from
-    "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-
-  import { getFirestore } from
-    "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCwGfVk9QJQoDnOsc65y7Ik4GShgBNJiVY",
-    authDomain: "liga-pad-2026.firebaseapp.com",
-    projectId: "liga-pad-2026",
-    storageBucket: "liga-pad-2026.firebasestorage.app",
-    messagingSenderId: "4798361210",
-    appId: "1:4798361210:web:ae5cabbd608c3a6cecd5c3"
-  };
-
-  const appFirebase = initializeApp(firebaseConfig);
-  const auth = getAuth(appFirebase);
-  const db = getFirestore(appFirebase);
-
-  console.log("Firebase da Liga PAD 2026 inicializado!");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+const firebaseConfig = {
+ apiKey:"AIzaSyCwGfVk9QJQoDnOsc65y7Ik4GShgBNJiVY",
+ authDomain:"liga-pad-2026.firebaseapp.com", projectId:"liga-pad-2026",
+ storageBucket:"liga-pad-2026.firebasestorage.app", messagingSenderId:"4798361210",
+ appId:"1:4798361210:web:ae5cabbd608c3a6cecd5c3"
+};
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+const estadoRef=doc(db,"ligas","pad2026");
+const adminRef=doc(db,"configuracao","administrador");
+let desligarAdmin=null;
+function erroAmigavel(e) {
+ const mensagens={
+  "auth/popup-blocked":"Permita a janela de login Google neste navegador.",
+  "auth/popup-closed-by-user":"A janela de login foi fechada. Tente novamente.",
+  "auth/unauthorized-domain":"Autorize este domínio em Firebase > Authentication > Configurações.",
+  "auth/operation-not-allowed":"Ative o provedor Google no Firebase Authentication.",
+  "auth/network-request-failed":"Confira sua conexão com a internet.",
+  "permission-denied":"O Firebase recusou o acesso. Confira as regras e o UID do administrador.",
+  "unavailable":"Sem conexão com o Firebase. Tente novamente quando estiver online."
+ };
+ return mensagens[e.code] || e.message || "Falha ao acessar o Firebase.";
+}
+window.entrarAdministrador=async()=>{
+ if (location.protocol==="file:") { alert("Abra o site pelo endereço do GitHub Pages para fazer login."); return; }
+ const botao=document.getElementById("btnLogin"); botao.disabled=true;
+ try {
+  const provider=new GoogleAuthProvider(); provider.setCustomParameters({prompt:"select_account"});
+  await signInWithPopup(auth,provider);
+ } catch(e) { document.getElementById("authStatus").textContent=erroAmigavel(e); }
+ finally { botao.disabled=false; }
+};
+window.sairAdministrador=async()=>{
+ if (acesso.ocupado) return;
+ try { await signOut(auth); } catch(e) { alert(erroAmigavel(e)); }
+};
+onAuthStateChanged(auth,usuario=>{
+ if(desligarAdmin) desligarAdmin();
+ acesso.usuario=usuario; acesso.adminUid=null;
+ document.getElementById("uidStatus").textContent=usuario ? "UID desta conta: "+usuario.uid : "";
+ document.getElementById("authStatus").textContent=usuario ? "Verificando permissão…" : "Modo consulta. Entre com Google para administrar.";
+ protegerControles();
+ if (!usuario) return;
+ desligarAdmin=onSnapshot(adminRef,s=>{
+  if(auth.currentUser?.uid!==usuario.uid) return;
+  acesso.adminUid=s.exists() && typeof s.data().uid==="string" ? s.data().uid : null;
+  document.getElementById("authStatus").textContent=autorizado()
+   ? "Administrador conectado."
+   : acesso.adminUid ? "Conta conectada em modo consulta."
+   : "Administração ainda não configurada. Cadastre o UID da sua conta no documento configuracao/administrador.";
+  atualizar();
+ },e=>{
+  if(auth.currentUser?.uid!==usuario.uid) return;
+  acesso.adminUid=null;
+  document.getElementById("authStatus").textContent=erroAmigavel(e); protegerControles();
+ });
+});
+function decodificar(data) {
+ if(data.versao!==1 || !Number.isSafeInteger(data.revisao) || data.revisao<1 || !data.placares || typeof data.placares!=="object")
+  throw new Error("Dados publicados inválidos.");
+ const partida=confrontos.map((c,i)=>({
+  id:i,turno:c[0],grupo:c[1],rodada:c[2],casa:c[3],fora:c[4],
+  golsCasa:data.placares[String(i)]?.c, golsFora:data.placares[String(i)]?.f
+ }));
+ return validarEstado({jogos:partida,resultadosFinais:data.resultadosFinais});
+}
+onSnapshot(estadoRef,{includeMetadataChanges:true},snap=>{
+ const receber=()=>{
+  try {
+   if(snap.metadata.hasPendingWrites) return;
+   if(snap.exists() && snap.data().revisao < acesso.revisao) return;
+   if(snap.exists()) { aplicarEstado(decodificar(snap.data())); acesso.revisao=snap.data().revisao; }
+   else { jogos=confrontos.map((c,i)=>({id:i,turno:c[0],grupo:c[1],rodada:c[2],casa:c[3],fora:c[4],golsCasa:"",golsFora:""})); resultadosFinais={}; acesso.revisao=0; atualizar(); }
+   acesso.pronto=!snap.metadata.fromCache;
+   mensagemSync(snap.metadata.fromCache ? "Sem confirmação de conexão. Edição bloqueada." : snap.exists() ? "Resultados sincronizados com o Firebase." : "Nenhum resultado publicado. O administrador pode registrar jogos ou importar um backup.");
+   protegerControles();
+  } catch(e) { acesso.pronto=false; mensagemSync(e.message); protegerControles(); }
+ };
+ if(acesso.ocupado) sincronizacaoPendente=receber; else receber();
+},e=>{acesso.pronto=false; mensagemSync(erroAmigavel(e)); protegerControles();});
+publicarNaNuvem=async(dados,revisao)=>{
+ if(!autorizado() || !auth.currentUser || auth.currentUser.uid!==acesso.adminUid) throw new Error("Sessão sem permissão.");
+ const uid=auth.currentUser.uid;
+ const placares=Object.fromEntries(dados.jogos.map(j=>[String(j.id),{c:j.golsCasa,f:j.golsFora}]));
+ try {
+  return await runTransaction(db,async tx=>{
+   if(auth.currentUser?.uid!==uid) throw new Error("A sessão mudou. Faça login novamente.");
+   const atual=await tx.get(estadoRef);
+   const versaoAtual=atual.exists()?atual.data().revisao:0;
+   if(versaoAtual!==revisao) throw new Error("Os resultados foram alterados em outra aba. Aguarde a sincronização e tente novamente.");
+   tx.set(estadoRef,{versao:1,revisao:revisao+1,placares,resultadosFinais:dados.resultadosFinais,atualizadoEm:serverTimestamp()});
+   return revisao+1;
+  });
+ } catch(e) { throw new Error(erroAmigavel(e)); }
+};
 </script>
+
 </body>
 </html>
