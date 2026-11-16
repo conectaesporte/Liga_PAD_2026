@@ -253,6 +253,14 @@ th { background: #eaf3ed; }
 
 <button onclick="mostrar('finais')">🏆 Fases Finais</button>
 
+<button id="btnLogin" onclick="entrarAdministrador()">
+  🔐 Entrar como administrador
+</button>
+
+<button id="btnSair" onclick="sairAdministrador()" style="display:none;">
+  🚪 Sair
+</button>
+
 </nav>
 
 <main>
@@ -918,6 +926,31 @@ destino.innerHTML = `
 }
 
 atualizar();
+</script>
+<script type="module">
+  import { initializeApp } from
+    "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+
+  import { getAuth } from
+    "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+
+  import { getFirestore } from
+    "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCwGfVk9QJQoDnOsc65y7Ik4GShgBNJiVY",
+    authDomain: "liga-pad-2026.firebaseapp.com",
+    projectId: "liga-pad-2026",
+    storageBucket: "liga-pad-2026.firebasestorage.app",
+    messagingSenderId: "4798361210",
+    appId: "1:4798361210:web:ae5cabbd608c3a6cecd5c3"
+  };
+
+  const appFirebase = initializeApp(firebaseConfig);
+  const auth = getAuth(appFirebase);
+  const db = getFirestore(appFirebase);
+
+  console.log("Firebase da Liga PAD 2026 inicializado!");
 </script>
 </body>
 </html>
