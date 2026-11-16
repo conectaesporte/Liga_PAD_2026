@@ -292,14 +292,62 @@ th { background: #eaf3ed; }
   .placar-jogo .nome-equipe { font-size: 13px; }
 }
 
+
+/* Marca da Liga: a imagem original fica em uma moldura branca responsiva. */
+.cabecalho-liga {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+.logo-liga {
+  width: 180px;
+  height: 180px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fff;
+}
+.logo-liga[hidden] { display: none; }
+.logo-liga img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.25);
+}
+.titulo-liga { min-width: 0; }
+.titulo-liga h1 {
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .cabecalho-liga { flex-direction: column; gap: 16px; }
+  .logo-liga { width: 150px; height: 150px; }
+}
+
 </style>
 </head>
 <body>
 
 <header>
-    <h1>LIGA DE FUTSAL INTERCLASSE PAD 2026</h1>
-    <p>Muito além do jogo!</p>
-    <p>E.E.M. Padre Arimateia Diniz</p>
+  <div class="cabecalho-liga">
+    <div class="logo-liga" hidden>
+      <img src="logo-liga-pad.png"
+           alt="Logo da Liga de Futsal PAD 2026 — Muito além do jogo"
+           width="200" height="200" decoding="async"
+           onload="this.parentElement.hidden = false"
+           onerror="this.parentElement.hidden = true">
+    </div>
+    <div class="titulo-liga">
+      <h1>LIGA DE FUTSAL INTERCLASSE PAD 2026</h1>
+      <p>Muito além do jogo!</p>
+      <p>E.E.M. Padre Arimateia Diniz</p>
+    </div>
+  </div>
 </header>
 
 <nav>
