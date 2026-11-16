@@ -73,6 +73,7 @@ th { background: #eaf3ed; }
 .campo input, .campo select { flex: 1; min-width: 130px; }
 .aviso { color: #555; font-size: 14px; }
 .oculto { display: none; }
+[data-admin-only][hidden] { display: none !important; }
 @media(max-width:600px) {
     table { font-size: 12px; }
     th,td { padding: 6px 3px; }
@@ -264,8 +265,8 @@ th { background: #eaf3ed; }
 </nav>
 
 <main>
-<div class="painel" aria-live="polite"><p id="authStatus">Carregando acesso seguro…</p><p id="syncStatus">Conectando aos resultados…</p><p id="uidStatus" style="overflow-wrap:anywhere"></p><button id="btnMigrar" onclick="importarDadosLocais()" hidden>Importar resultados antigos deste navegador</button></div>
-<details class="painel"><summary>Configuração inicial do administrador</summary>
+<div class="painel" data-admin-only hidden aria-live="polite"><p id="authStatus">Carregando acesso seguro…</p><p id="syncStatus">Conectando aos resultados…</p><p id="uidStatus" style="overflow-wrap:anywhere"></p><button id="btnMigrar" onclick="importarDadosLocais()" hidden>Importar resultados antigos deste navegador</button></div>
+<details class="painel" data-admin-only hidden><summary>Configuração inicial do administrador</summary>
 <p>1. Publique este index.html no GitHub Pages e entre com sua conta Google. Copie o UID exibido.</p>
 <p>2. No Firebase, abra Firestore Database → Regras e publique o modelo abaixo. Revise antes de divulgar amplamente. Ele permite consultar os placares e exige o UID configurado para gravar.</p>
 <p>3. Em Firestore Database → Dados, crie a coleção <b>configuracao</b>, documento <b>administrador</b>, campo <b>uid</b> (string) com o UID da sua conta. O cadastro do administrador é feito somente pelo console.</p>
@@ -383,6 +384,7 @@ service cloud.firestore {
         <div class="card"><strong id="totalJogos">0</strong>Jogos cadastrados</div>
         <div class="card"><strong id="jogosFinalizados">0</strong>Jogos finalizados</div>
     </div>
+    <div data-admin-only hidden>
     <h3>Organização</h3>
     <p>As competições da manhã e da tarde são independentes. Cada turno terá sua própria classificação, semifinais e final.</p>
     <p class="aviso">Os resultados publicados são sincronizados com o Firebase. Apenas o administrador pode alterar placares e restaurar backups.</p>
@@ -411,6 +413,7 @@ service cloud.firestore {
 >
 
 </div>
+    </div>
 </section>
 
 <section id="jogos" class="painel oculto">
@@ -614,7 +617,7 @@ const statusJogo = finalizado
                 class="${corPlacar(j, 'fora')}"
                   value="${j.golsFora ?? ''}" placeholder="-">
                 <span>${j.fora}</span>
-                <button onclick="registrar(${j.id})">Salvar</button>
+                <button data-admin-only hidden onclick="registrar(${j.id})">Salvar</button>
               </div>
             </div>`;
         });
@@ -786,6 +789,7 @@ resultadosFinais[`${turno}-${fase}`] = {
 
 
 function fazerBackup() {
+  if (!autorizado()) { alert("Somente o administrador pode fazer backup."); return; }
   const dados = {
     versao: 1,
     data: new Date().toISOString(),
@@ -872,13 +876,13 @@ const criarPartida = (fase, equipes) => {
           value="${golsFora}" placeholder="-">
         <span>${equipes[1]}</span>
 
-<select id="vencedor-${turno}-${fase}">
+<select data-admin-only hidden id="vencedor-${turno}-${fase}">
   <option value="">Vencedor nos pênaltis</option>
   <option ${resultado?.vencedor === equipes[0] ? "selected" : ""} value="${equipes[0]}">${equipes[0]}</option>
   <option ${resultado?.vencedor === equipes[1] ? "selected" : ""} value="${equipes[1]}">${equipes[1]}</option>
 </select>
 
-        <button onclick='salvarResultadoFinal(
+        <button data-admin-only hidden onclick='salvarResultadoFinal(
           ${JSON.stringify(turno)},
           ${JSON.stringify(fase)},
           ${JSON.stringify(equipes[0])},
@@ -967,6 +971,9 @@ function autorizado() {
 function podeEditar() { return autorizado() && acesso.pronto && !acesso.ocupado; }
 function mensagemSync(texto) { document.getElementById("syncStatus").textContent = texto; }
 function protegerControles() {
+  document.querySelectorAll("[data-admin-only]").forEach(elemento => {
+    elemento.hidden = !autorizado();
+  });
   document.querySelectorAll('#listaJogos input, #listaJogos button, #finais input, #finais select, #finais button, #arquivoBackup').forEach(e => e.disabled = !podeEditar());
   document.querySelectorAll('label[for="arquivoBackup"]').forEach(e => {
     e.style.opacity = podeEditar() ? "1" : ".45";
