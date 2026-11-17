@@ -1057,6 +1057,10 @@ function atualizarOpcoesProgramacao() {
     }).join("");
   campo.value=pendentes.some(j=>String(j.id)===selecionado) ? selecionado : "";
 }
+function diaSemanaProgramacao(data) {
+  const dias=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+  return dias[new Date(data+"T12:00:00.000Z").getUTCDay()];
+}
 function listarProximosJogos() {
   const lista=programacao.map(p=>({...p,jogo:jogos.find(j=>j.id===p.jogoId)}))
     .filter(p=>jogoPendente(p.jogo))
@@ -1065,7 +1069,7 @@ function listarProximosJogos() {
   destino.innerHTML=lista.map(p=>{
     const [ano,mes,dia]=p.data.split("-");
     return '<article class="agenda-cartao">'+
-      '<div class="agenda-meta"><time datetime="'+p.data+'">'+dia+'/'+mes+'/'+ano+'</time>'+
+      '<div class="agenda-meta"><time datetime="'+p.data+'">'+diaSemanaProgramacao(p.data)+' · '+dia+'/'+mes+'/'+ano+'</time>'+
       '<span>'+p.jogo.turno+' · Grupo '+p.jogo.grupo+'</span></div>'+
       '<div class="agenda-confronto"><strong>'+p.jogo.casa+'</strong><span>×</span><strong>'+p.jogo.fora+'</strong></div>'+
       '<div class="agenda-acoes" data-admin-only hidden>'+
