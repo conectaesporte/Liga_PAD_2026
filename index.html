@@ -172,6 +172,33 @@ footer strong { color: #4a6378; }
   *, *::before, *::after { transition: none !important; }
 }
 
+
+/* Programação dos próximos confrontos */
+.proximos-bloco { margin-top: 28px; border-top: 1px solid var(--borda); padding-top: 24px; }
+.proximos-bloco h3 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+.agenda-form { display: grid; grid-template-columns: minmax(0, 2fr) minmax(160px, 1fr) auto; gap: 12px; align-items: end; margin: 18px 0 8px; }
+.agenda-form label { min-width: 0; font-size: 12px; font-weight: 650; color: var(--muted); }
+.agenda-form select, .agenda-form input { display: block; width: 100%; min-width: 0; margin-top: 6px; font-size: 16px; }
+.agenda-lista { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 16px; }
+.agenda-cartao { border: 1px solid var(--borda); border-radius: 12px; padding: 16px; background: #f8fbfa; min-width: 0; }
+.agenda-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.agenda-meta time { color: var(--verde-escuro); font-weight: 750; }
+.agenda-confronto { display: grid; grid-template-columns: minmax(0,1fr) 16px minmax(0,1fr); align-items: center; gap: 8px; font-size: 14px; }
+.agenda-confronto strong { min-width: 0; overflow-wrap: anywhere; }
+.agenda-confronto strong:last-child { text-align: right; }
+.agenda-confronto > span { text-align: center; color: var(--muted); }
+.agenda-acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.agenda-acoes button { font-size: 12px; padding: 8px 12px; }
+.agenda-acoes .agenda-remover { background: #edf1f5; color: var(--texto); }
+.agenda-config { margin: 12px 0 20px; font-size: 12px; color: var(--muted); }
+.agenda-config pre { max-height: 280px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; background: #f8fafc; }
+@media(max-width: 700px) {
+ .agenda-form { grid-template-columns: 1fr; }
+ .agenda-form button { justify-self: start; }
+ .agenda-lista { grid-template-columns: 1fr; }
+ .agenda-confronto { font-size: 13px; }
+}
+
 </style>
 </head>
 <body>
@@ -346,6 +373,49 @@ service cloud.firestore {
       <button class="atalho" onclick="mostrar('jogos')"><span>Jogos e resultados<small>Acompanhe os placares</small></span><b aria-hidden="true">→</b></button>
       <button class="atalho secundario" onclick="mostrar('classificacao')"><span>Classificação<small>Veja a disputa nos grupos</small></span><b aria-hidden="true">→</b></button>
     </div>
+
+    <div class="proximos-bloco">
+      <div class="secao-topo"><p class="kicker">Programação</p><h3>Próximos jogos</h3></div>
+      <div data-admin-only hidden>
+        <form id="formProgramacao" class="agenda-form" onsubmit="salvarProgramacao(event)">
+          <label for="agendaJogo">Equipes do próximo jogo
+            <select id="agendaJogo" required><option value="">Escolha um confronto</option></select>
+          </label>
+          <label for="agendaData">Data
+            <input type="date" id="agendaData" min="2000-01-01" max="2099-12-31" required>
+          </label>
+          <button type="submit">Publicar jogo</button>
+        </form>
+        <p id="agendaAvisoAdmin" class="aviso" role="status">Aguardando conexão para publicar a programação.</p>
+        <details class="agenda-config">
+          <summary>Habilitar a programação no Firebase</summary>
+          <p>Adicione somente o bloco abaixo às regras já publicadas, dentro de <code>match /databases/{database}/documents</code>, antes da regra geral <code>match /{document=**}</code>. Mantenha todas as outras regras. Depois clique em Publicar e recarregue o site.</p>
+          <p>Este modelo permite consulta pública da programação e exige o UID do administrador para gravar. Revise e verifique a regra no Firebase antes de usar a nova função.</p>
+          <pre>// Programação pública da Liga PAD. ID do documento: número do jogo, de 0 a 31.
+// Campos obrigatórios: data (timestamp de 2000 a 2099) e atualizadoEm
+// (timestamp do servidor). Somente o UID administrador pode gravar ou remover.
+match /ligas/pad2026/programacao/{jogoId} {
+  function programacaoValida(d) {
+    return jogoId.matches('(0|[1-9]|[12][0-9]|3[01])')
+      &amp;&amp; d.keys().hasAll(['data', 'atualizadoEm'])
+      &amp;&amp; d.keys().hasOnly(['data', 'atualizadoEm'])
+      &amp;&amp; d.data is timestamp
+      &amp;&amp; d.data &gt;= timestamp.date(2000, 1, 1)
+      &amp;&amp; d.data &lt; timestamp.date(2100, 1, 1)
+      &amp;&amp; d.atualizadoEm == request.time;
+  }
+
+  allow read: if true;
+  allow create, update: if isOwner()
+    &amp;&amp; programacaoValida(request.resource.data);
+  allow delete: if isOwner();
+}</pre>
+        </details>
+      </div>
+      <p id="agendaVazia" class="aviso" role="status">Carregando programação…</p>
+      <div id="listaProximosJogos" class="agenda-lista"></div>
+    </div>
+
     <div data-admin-only hidden>
     <h3>Organização</h3>
     <p>As competições da manhã e da tarde são independentes. Cada turno terá sua própria classificação, semifinais e final.</p>
@@ -524,6 +594,7 @@ function atualizar() {
     document.getElementById("progressoBarra").style.width=percentual+"%";
     document.getElementById("progressoCompeticao").setAttribute("aria-valuenow",String(percentual));
     listarJogos(); listarClassificacao(); listarEquipes(); listarFinais();
+    atualizarOpcoesProgramacao(); listarProximosJogos();
 }
 function listarJogos() {
   let turno = document.getElementById("filtroTurno").value;
@@ -951,6 +1022,8 @@ destino.innerHTML = `
 /* A autorização efetiva é conferida pelas regras do Firestore.
    O documento configuracao/administrador só pode ser criado no console. */
 const modoAdministrador = new URLSearchParams(location.search).get("admin") === "1";
+let programacao=[], programacaoPronta=false, programacaoOcupada=false, erroProgramacao="";
+let publicarProgramacaoRemota=null;
 let acesso = { usuario:null, adminUid:null, pronto:false, ocupado:false, revisao:0 };
 let publicarNaNuvem = null;
 let sincronizacaoPendente = null;
@@ -959,6 +1032,100 @@ function autorizado() {
   return !!(acesso.usuario && acesso.adminUid && acesso.usuario.uid === acesso.adminUid);
 }
 function podeEditar() { return autorizado() && acesso.pronto && !acesso.ocupado; }
+
+function dataProgramacaoValida(valor) {
+  if(typeof valor!=="string" || !/^20[0-9]{2}-[0-9]{2}-[0-9]{2}$/.test(valor)) return false;
+  const data=new Date(valor+"T12:00:00.000Z");
+  return Number.isFinite(data.getTime()) && data.toISOString().slice(0,10)===valor;
+}
+function podeProgramar() {
+  return podeEditar() && programacaoPronta && !programacaoOcupada && !!publicarProgramacaoRemota;
+}
+function jogoPendente(jogo) {
+  return jogo && (jogo.golsCasa==="" || jogo.golsFora==="");
+}
+function atualizarOpcoesProgramacao() {
+  const campo=document.getElementById("agendaJogo");
+  const selecionado=campo.value;
+  const pendentes=jogos.filter(jogoPendente);
+  campo.innerHTML='<option value="">Escolha as equipes do próximo jogo</option>'+
+    ["Manhã","Tarde"].map(turno=>{
+      const lista=pendentes.filter(j=>j.turno===turno);
+      return lista.length ? '<optgroup label="Turno '+turno+'">'+lista.map(j=>
+        '<option value="'+j.id+'">'+j.casa+' × '+j.fora+' · Grupo '+j.grupo+'</option>'
+      ).join("")+'</optgroup>' : "";
+    }).join("");
+  campo.value=pendentes.some(j=>String(j.id)===selecionado) ? selecionado : "";
+}
+function listarProximosJogos() {
+  const lista=programacao.map(p=>({...p,jogo:jogos.find(j=>j.id===p.jogoId)}))
+    .filter(p=>jogoPendente(p.jogo))
+    .sort((a,b)=>a.data.localeCompare(b.data)||a.jogoId-b.jogoId);
+  const destino=document.getElementById("listaProximosJogos");
+  destino.innerHTML=lista.map(p=>{
+    const [ano,mes,dia]=p.data.split("-");
+    return '<article class="agenda-cartao">'+
+      '<div class="agenda-meta"><time datetime="'+p.data+'">'+dia+'/'+mes+'/'+ano+'</time>'+
+      '<span>'+p.jogo.turno+' · Grupo '+p.jogo.grupo+'</span></div>'+
+      '<div class="agenda-confronto"><strong>'+p.jogo.casa+'</strong><span>×</span><strong>'+p.jogo.fora+'</strong></div>'+
+      '<div class="agenda-acoes" data-admin-only hidden>'+
+      '<button type="button" onclick="editarProgramacao('+p.jogoId+')">Alterar data</button>'+
+      '<button type="button" class="agenda-remover" onclick="removerProgramacao('+p.jogoId+')">Remover</button></div></article>';
+  }).join("");
+  document.getElementById("agendaVazia").hidden=lista.length>0;
+  document.getElementById("agendaVazia").textContent=erroProgramacao ? "A programação está indisponível no momento." :
+    programacaoPronta ? "Nenhum próximo jogo programado por enquanto." : "Carregando programação…";
+}
+function atualizarProgramacao() {
+  atualizarOpcoesProgramacao();
+  listarProximosJogos();
+  protegerControles();
+}
+function editarProgramacao(id) {
+  if(!podeProgramar()) return;
+  const salvo=programacao.find(p=>p.jogoId===id);
+  if(!salvo) return;
+  atualizarOpcoesProgramacao();
+  document.getElementById("agendaJogo").value=String(id);
+  document.getElementById("agendaData").value=salvo.data;
+  document.getElementById("agendaData").focus();
+}
+async function salvarProgramacao(evento) {
+  evento.preventDefault();
+  if(!podeProgramar()) { alert("Entre como administrador e aguarde a conexão para publicar a programação."); return; }
+  const valor=document.getElementById("agendaJogo").value;
+  const id=Number(valor);
+  const data=document.getElementById("agendaData").value;
+  if(valor==="" || !Number.isInteger(id) || !jogoPendente(jogos.find(j=>j.id===id))) {
+    alert("Escolha um jogo ainda não finalizado."); return;
+  }
+  if(!dataProgramacaoValida(data)) { alert("Informe uma data válida."); return; }
+  await alterarProgramacao(id,data);
+}
+async function removerProgramacao(id) {
+  if(!podeProgramar() || !programacao.some(p=>p.jogoId===id)) return;
+  if(!confirm("Remover este jogo da programação? Os placares serão mantidos.")) return;
+  await alterarProgramacao(id,null);
+}
+async function alterarProgramacao(id,data) {
+  if(!podeProgramar()) return false;
+  programacaoOcupada=true;
+  document.getElementById("agendaAvisoAdmin").textContent="Salvando programação…";
+  protegerControles();
+  try {
+    await publicarProgramacaoRemota(id,data);
+    document.getElementById("agendaAvisoAdmin").textContent=data===null ? "Jogo removido da programação." : "Programação publicada.";
+    return true;
+  } catch(erro) {
+    document.getElementById("agendaAvisoAdmin").textContent="A programação não foi salva. "+erro.message;
+    alert("Não foi possível salvar a programação: "+erro.message);
+    return false;
+  } finally {
+    programacaoOcupada=false;
+    protegerControles();
+  }
+}
+
 function mensagemSync(texto) { document.getElementById("syncStatus").textContent = texto; }
 function protegerControles() {
   document.querySelectorAll("[data-admin-only]").forEach(elemento => {
@@ -975,6 +1142,7 @@ function protegerControles() {
   document.getElementById("btnSair").style.display = acesso.usuario ? "" : "none";
   document.getElementById("btnSair").disabled = acesso.ocupado;
   document.getElementById("btnMigrar").hidden = !podeEditar();
+  document.querySelectorAll("#formProgramacao select, #formProgramacao input, #formProgramacao button, #listaProximosJogos button").forEach(c=>c.disabled=!podeProgramar());
 }
 const atualizarOriginal = atualizar;
 atualizar = function() { atualizarOriginal(); protegerControles(); };
@@ -1097,7 +1265,7 @@ atualizar();
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+import { getFirestore, doc, collection, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 const firebaseConfig = {
  apiKey:"AIzaSyCwGfVk9QJQoDnOsc65y7Ik4GShgBNJiVY",
  authDomain:"liga-pad-2026.firebaseapp.com", projectId:"liga-pad-2026",
@@ -1222,6 +1390,57 @@ publicarNaNuvem=async(dados,revisao)=>{
   });
  } catch(e) { throw new Error(erroAmigavel(e)); }
 };
+
+const programacaoRef=collection(db,"ligas","pad2026","programacao");
+onSnapshot(programacaoRef,{includeMetadataChanges:true},snapshot=>{
+ if(snapshot.metadata.hasPendingWrites) return;
+ const recebida=[];
+ snapshot.forEach(item=>{
+  const id=Number(item.id),dados=item.data();
+  if(!/^(0|[1-9]|[12][0-9]|3[01])$/.test(item.id) ||
+     !Number.isInteger(id) || typeof dados.data?.toDate!=="function") return;
+  try {
+   const data=dados.data.toDate().toISOString().slice(0,10);
+   if(dataProgramacaoValida(data)) recebida.push({jogoId:id,data});
+  } catch(erro) { /* Documento inválido não é exibido. */ }
+ });
+ programacao=recebida;
+ programacaoPronta=!snapshot.metadata.fromCache;
+ erroProgramacao="";
+ document.getElementById("agendaAvisoAdmin").textContent=programacaoPronta ?
+   "Escolha o confronto e a data. Para mudar a data, publique o mesmo jogo novamente." :
+   "Aguardando confirmação de conexão para editar a programação.";
+ atualizarProgramacao();
+},erro=>{
+ programacaoPronta=false;
+ erroProgramacao=erro.code||"erro";
+ document.getElementById("agendaAvisoAdmin").textContent=erro.code==="permission-denied" ?
+   "A programação precisa ser liberada nas regras do Firebase. Veja as instruções abaixo e recarregue a página depois de publicar as regras." :
+   erroAmigavel(erro);
+ atualizarProgramacao();
+});
+publicarProgramacaoRemota=async(id,data)=>{
+ if(!autorizado() || !auth.currentUser || auth.currentUser.uid!==acesso.adminUid)
+  throw new Error("Apenas o administrador pode alterar a programação.");
+ if(!Number.isInteger(id) || id<0 || id>=confrontos.length ||
+    (data!==null && !dataProgramacaoValida(data))) throw new Error("Programação inválida.");
+ const uid=auth.currentUser.uid;
+ const alvo=doc(db,"ligas","pad2026","programacao",String(id));
+ try {
+  await runTransaction(db,async transacao=>{
+   if(auth.currentUser?.uid!==uid) throw new Error("A sessão mudou. Entre novamente.");
+   const estado=await transacao.get(estadoRef);
+   if(data===null) {
+    transacao.delete(alvo);
+   } else {
+    const jogoAtual=estado.exists() ? decodificar(estado.data()).jogos.find(j=>j.id===id) : jogos.find(j=>j.id===id);
+    if(!jogoPendente(jogoAtual)) throw new Error("Este jogo já foi finalizado. Escolha outro confronto.");
+    transacao.set(alvo,{data:new Date(data+"T12:00:00.000Z"),atualizadoEm:serverTimestamp()});
+   }
+  });
+ } catch(erro) { throw new Error(erroAmigavel(erro)); }
+};
+
 </script>
 
 </body>
