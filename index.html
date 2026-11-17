@@ -418,15 +418,17 @@ service cloud.firestore {
       <div data-admin-only hidden>
         <div class="agenda-publicacao">
           <p id="estadoVisibilidadeAgenda" role="status">Carregando a visibilidade para os alunos…</p>
-          <button id="btnVisibilidadeAgenda" type="button" onclick="alternarVisibilidadeProgramacao()" disabled>Mostrar aos alunos</button>
-          <p class="aviso">Você sempre vê esta programação. O botão controla sua exibição no site dos alunos; os dados da programação continuam públicos no Firebase.</p>
+          <p class="aviso">Você sempre vê todas as partidas. Cada jogo tem seu próprio botão para controlar a exibição aos alunos; os dados da programação continuam públicos no Firebase.</p>
           <details><summary>Habilitar o botão no Firebase</summary>
           <p>Em Firestore → Regras, adicione este bloco antes de <code>match /{document=**}</code>, dentro de <code>match /databases/{database}/documents</code>. Preserve as outras regras e clique em Publicar. Depois, recarregue o site.</p>
           <pre>match /ligas/pad2026/preferencias/visualizacao {
   function visualizacaoValida(d) {
-    return d.keys().hasAll(['proximosJogosVisiveis', 'atualizadoEm'])
-      &amp;&amp; d.keys().hasOnly(['proximosJogosVisiveis', 'atualizadoEm'])
+    return d.keys().hasAll(['proximosJogosVisiveis', 'jogosVisiveis', 'atualizadoEm'])
+      &amp;&amp; d.keys().hasOnly(['proximosJogosVisiveis', 'jogosVisiveis', 'atualizadoEm'])
       &amp;&amp; d.proximosJogosVisiveis is bool
+      &amp;&amp; d.jogosVisiveis is list
+      &amp;&amp; d.jogosVisiveis.size() &lt;= 32
+      &amp;&amp; d.jogosVisiveis.hasOnly(['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'])
       &amp;&amp; d.atualizadoEm == request.time;
   }
   allow get: if true;
@@ -1081,24 +1083,25 @@ destino.innerHTML = `
 const modoAdministrador = new URLSearchParams(location.search).get("admin") === "1";
 let programacao=[], programacaoPronta=false, programacaoOcupada=false, erroProgramacao="";
 let publicarProgramacaoRemota=null;
-let proximosJogosVisiveis=false, visualizacaoPronta=false, visualizacaoOcupada=false;
+let jogosVisiveis=[], visualizacaoPronta=false, visualizacaoOcupada=false;
 let publicarVisibilidadeRemota=null, erroVisibilidade="";
+function jogoVisivel(id) { return visualizacaoPronta && jogosVisiveis.includes(String(id)); }
 function atualizarVisibilidadeProgramacao() {
- document.getElementById("blocoProximosJogos").hidden=!(autorizado() || (visualizacaoPronta && proximosJogosVisiveis));
- const botao=document.getElementById("btnVisibilidadeAgenda");
- botao.textContent=visualizacaoOcupada?"Salvando…":proximosJogosVisiveis?"Ocultar dos alunos":"Mostrar aos alunos";
- botao.disabled=!(podeEditar() && visualizacaoPronta && !visualizacaoOcupada && publicarVisibilidadeRemota);
- botao.setAttribute("aria-pressed",String(proximosJogosVisiveis));
+ document.getElementById("blocoProximosJogos").hidden=!(autorizado() || (visualizacaoPronta && programacao.some(p=>jogoVisivel(p.jogoId) && jogoPendente(jogos.find(j=>j.id===p.jogoId)))));
  document.getElementById("estadoVisibilidadeAgenda").textContent=erroVisibilidade || (!visualizacaoPronta?
  "Aguardando conexão para consultar a visibilidade.":
- proximosJogosVisiveis?"Próximos jogos visíveis para os alunos.":"Próximos jogos ocultos para os alunos. Você pode preparar a programação aqui.");
+ "Use o botão de cada partida para mostrar ou ocultar esse jogo aos alunos.");
+ document.querySelectorAll("[data-visibilidade-jogo]").forEach(botao=>{
+  botao.disabled=!(podeEditar() && visualizacaoPronta && !visualizacaoOcupada && publicarVisibilidadeRemota);
+ });
 }
-async function alternarVisibilidadeProgramacao() {
- if(!podeEditar() || !visualizacaoPronta || visualizacaoOcupada || !publicarVisibilidadeRemota) return;
- const desejada=!proximosJogosVisiveis;
+async function alternarVisibilidadeProgramacao(id) {
+ if(!podeEditar() || !visualizacaoPronta || visualizacaoOcupada || !publicarVisibilidadeRemota ||
+    !Number.isInteger(id) || !programacao.some(p=>p.jogoId===id)) return;
+ const desejada=!jogoVisivel(id);
  visualizacaoOcupada=true; erroVisibilidade=""; atualizarVisibilidadeProgramacao();
- try { await publicarVisibilidadeRemota(desejada); }
- catch(erro) { erroVisibilidade="Não foi possível alterar a visibilidade. "+erro.message; }
+ try { await publicarVisibilidadeRemota(id,desejada); }
+ catch(erro) { erroVisibilidade="Não foi possível alterar a visibilidade. Confira a regra do botão no Firebase. "+erro.message; }
  finally { visualizacaoOcupada=false; atualizarVisibilidadeProgramacao(); }
 }
 let acesso = { usuario:null, adminUid:null, pronto:false, ocupado:false, revisao:0 };
@@ -1140,7 +1143,7 @@ function diaSemanaProgramacao(data) {
 }
 function listarProximosJogos() {
   const lista=programacao.map(p=>({...p,jogo:jogos.find(j=>j.id===p.jogoId)}))
-    .filter(p=>jogoPendente(p.jogo))
+    .filter(p=>jogoPendente(p.jogo) && (autorizado() || jogoVisivel(p.jogoId)))
     .sort((a,b)=>a.data.localeCompare(b.data)||a.jogoId-b.jogoId);
   const destino=document.getElementById("listaProximosJogos");
   const cartao=p=>{
@@ -1150,6 +1153,8 @@ function listarProximosJogos() {
       '<span>Grupo '+p.jogo.grupo+'</span></div>'+
       '<div class="agenda-confronto"><strong>'+p.jogo.casa+'</strong><span>×</span><strong>'+p.jogo.fora+'</strong></div>'+
       '<div class="agenda-acoes" data-admin-only hidden>'+
+      '<span>'+(jogoVisivel(p.jogoId)?'Visível para os alunos':'Oculto para os alunos')+'</span>'+
+      '<button type="button" data-visibilidade-jogo aria-pressed="'+jogoVisivel(p.jogoId)+'" onclick="alternarVisibilidadeProgramacao('+p.jogoId+')">'+(jogoVisivel(p.jogoId)?'Ocultar dos alunos':'Mostrar aos alunos')+'</button>'+
       '<button type="button" onclick="editarProgramacao('+p.jogoId+')">Alterar data</button>'+
       '<button type="button" class="agenda-remover" onclick="removerProgramacao('+p.jogoId+')">Remover</button></div></article>';
   };
@@ -1220,6 +1225,7 @@ async function alterarProgramacao(id,data) {
 
 function mensagemSync(texto) { document.getElementById("syncStatus").textContent = texto; }
 function protegerControles() {
+  listarProximosJogos();
   document.querySelectorAll("[data-admin-only]").forEach(elemento => {
     elemento.hidden = !autorizado();
   });
@@ -1535,30 +1541,39 @@ publicarProgramacaoRemota=async(id,data)=>{
 };
 
 const visualizacaoRef=doc(db,"ligas","pad2026","preferencias","visualizacao");
+function idsPublicados(dados) {
+ const permitidos=Array.from({length:32},(_,i)=>String(i));
+ return Array.isArray(dados.jogosVisiveis)?
+ [...new Set(dados.jogosVisiveis.filter(id=>permitidos.includes(id)))]:
+ dados.proximosJogosVisiveis===true?permitidos:[];
+}
 onSnapshot(visualizacaoRef,{includeMetadataChanges:true},snapshot=>{
  if(snapshot.metadata.hasPendingWrites) return;
  visualizacaoPronta=!snapshot.metadata.fromCache;
- proximosJogosVisiveis=snapshot.exists() && snapshot.data().proximosJogosVisiveis===true;
+ jogosVisiveis=snapshot.exists()?idsPublicados(snapshot.data()):[];
  erroVisibilidade="";
- atualizarVisibilidadeProgramacao();
+ listarProximosJogos(); protegerControles();
 },erro=>{
- visualizacaoPronta=false; proximosJogosVisiveis=false;
+ visualizacaoPronta=false; jogosVisiveis=[];
  erroVisibilidade=erro.code==="permission-denied"?
  "Habilite o botão nas regras do Firebase seguindo as instruções abaixo e recarregue o site.":
  "Não foi possível consultar a visibilidade. Recarregue o site para tentar novamente.";
- atualizarVisibilidadeProgramacao();
+ listarProximosJogos(); protegerControles();
 });
-publicarVisibilidadeRemota=async(visivel)=>{
- if(typeof visivel!=="boolean" || !autorizado() || auth.currentUser?.uid!==acesso.adminUid)
+publicarVisibilidadeRemota=async(id,visivel)=>{
+ if(!Number.isInteger(id) || id<0 || id>31 || typeof visivel!=="boolean" ||
+ !autorizado() || auth.currentUser?.uid!==acesso.adminUid)
   throw new Error("Somente o administrador pode alterar esta opção.");
  const uid=auth.currentUser.uid;
  await runTransaction(db,async transacao=>{
-  await transacao.get(visualizacaoRef);
+  const atual=await transacao.get(visualizacaoRef);
+  const ids=idsPublicados(atual.exists()?atual.data():{});
+  const novos=ids.filter(valor=>valor!==String(id));
+  if(visivel) novos.push(String(id));
   if(auth.currentUser?.uid!==uid) throw new Error("A sessão mudou. Entre novamente.");
-  transacao.set(visualizacaoRef,{proximosJogosVisiveis:visivel,atualizadoEm:serverTimestamp()});
+  transacao.set(visualizacaoRef,{proximosJogosVisiveis:novos.length>0,jogosVisiveis:novos,atualizadoEm:serverTimestamp()});
  });
 };
-
 </script>
 
 </body>
