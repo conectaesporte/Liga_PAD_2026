@@ -238,6 +238,10 @@ footer strong { color: #4a6378; }
 .agenda-publicacao{padding:18px;margin:18px 0;border:1px solid #c9dfd8;border-radius:16px;background:#f1f9f5}
 .agenda-publicacao>p:first-child{font-weight:700}
 .agenda-publicacao pre{white-space:pre-wrap;overflow-wrap:anywhere}
+
+.agenda-acoes button[data-visibilidade-jogo][aria-pressed="true"] { background:#7c3aed; color:#fff; border:1px solid #7c3aed; }
+.agenda-acoes button[data-visibilidade-jogo][aria-pressed="false"] { background:#374151; color:#fff; border:1px solid #374151; }
+.agenda-acoes button[data-visibilidade-jogo]:hover:not(:disabled) { filter:brightness(.88); }
 </style>
 </head>
 <body>
@@ -1153,8 +1157,8 @@ function listarProximosJogos() {
       '<span>Grupo '+p.jogo.grupo+'</span></div>'+
       '<div class="agenda-confronto"><strong>'+p.jogo.casa+'</strong><span>×</span><strong>'+p.jogo.fora+'</strong></div>'+
       '<div class="agenda-acoes" data-admin-only hidden>'+
-      '<span>'+(jogoVisivel(p.jogoId)?'Visível para os alunos':'Oculto para os alunos')+'</span>'+
-      '<button type="button" data-visibilidade-jogo aria-pressed="'+jogoVisivel(p.jogoId)+'" onclick="alternarVisibilidadeProgramacao('+p.jogoId+')">'+(jogoVisivel(p.jogoId)?'Ocultar dos alunos':'Mostrar aos alunos')+'</button>'+
+      '<span>'+(jogoVisivel(p.jogoId)?'Visível a todos':'Oculto')+'</span>'+
+      '<button type="button" data-visibilidade-jogo title="'+(jogoVisivel(p.jogoId)?'Clique para ocultar este jogo':'Jogo oculto. Clique para deixá-lo visível a todos')+'" aria-pressed="'+jogoVisivel(p.jogoId)+'" onclick="alternarVisibilidadeProgramacao('+p.jogoId+')">'+(jogoVisivel(p.jogoId)?'Visível a todos':'Ocultar')+'</button>'+
       '<button type="button" onclick="editarProgramacao('+p.jogoId+')">Alterar data</button>'+
       '<button type="button" class="agenda-remover" onclick="removerProgramacao('+p.jogoId+')">Remover</button></div></article>';
   };
