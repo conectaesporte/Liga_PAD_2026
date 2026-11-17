@@ -234,6 +234,10 @@ footer strong { color: #4a6378; }
  .agenda-turno .agenda-cartao { padding: 13px; }
 }
 
+#blocoProximosJogos[hidden]{display:none!important}
+.agenda-publicacao{padding:18px;margin:18px 0;border:1px solid #c9dfd8;border-radius:16px;background:#f1f9f5}
+.agenda-publicacao>p:first-child{font-weight:700}
+.agenda-publicacao pre{white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -409,9 +413,27 @@ service cloud.firestore {
       <button class="atalho secundario" onclick="mostrar('classificacao')"><span>Classificação<small>Veja a disputa nos grupos</small></span><b aria-hidden="true">→</b></button>
     </div>
 
-    <div class="proximos-bloco">
+    <div class="proximos-bloco" id="blocoProximosJogos" hidden>
       <div class="secao-topo"><p class="kicker">Programação</p><h3>Próximos jogos</h3></div>
       <div data-admin-only hidden>
+        <div class="agenda-publicacao">
+          <p id="estadoVisibilidadeAgenda" role="status">Carregando a visibilidade para os alunos…</p>
+          <button id="btnVisibilidadeAgenda" type="button" onclick="alternarVisibilidadeProgramacao()" disabled>Mostrar aos alunos</button>
+          <p class="aviso">Você sempre vê esta programação. O botão controla sua exibição no site dos alunos; os dados da programação continuam públicos no Firebase.</p>
+          <details><summary>Habilitar o botão no Firebase</summary>
+          <p>Em Firestore → Regras, adicione este bloco antes de <code>match /{document=**}</code>, dentro de <code>match /databases/{database}/documents</code>. Preserve as outras regras e clique em Publicar. Depois, recarregue o site.</p>
+          <pre>match /ligas/pad2026/preferencias/visualizacao {
+  function visualizacaoValida(d) {
+    return d.keys().hasAll(['proximosJogosVisiveis', 'atualizadoEm'])
+      &amp;&amp; d.keys().hasOnly(['proximosJogosVisiveis', 'atualizadoEm'])
+      &amp;&amp; d.proximosJogosVisiveis is bool
+      &amp;&amp; d.atualizadoEm == request.time;
+  }
+  allow get: if true;
+  allow list, delete: if false;
+  allow create, update: if isOwner() &amp;&amp; visualizacaoValida(request.resource.data);
+}</pre></details>
+        </div>
         <form id="formProgramacao" class="agenda-form" onsubmit="salvarProgramacao(event)">
           <label for="agendaJogo">Equipes do próximo jogo
             <select id="agendaJogo" required><option value="">Escolha um confronto</option></select>
@@ -1059,6 +1081,26 @@ destino.innerHTML = `
 const modoAdministrador = new URLSearchParams(location.search).get("admin") === "1";
 let programacao=[], programacaoPronta=false, programacaoOcupada=false, erroProgramacao="";
 let publicarProgramacaoRemota=null;
+let proximosJogosVisiveis=false, visualizacaoPronta=false, visualizacaoOcupada=false;
+let publicarVisibilidadeRemota=null, erroVisibilidade="";
+function atualizarVisibilidadeProgramacao() {
+ document.getElementById("blocoProximosJogos").hidden=!(autorizado() || (visualizacaoPronta && proximosJogosVisiveis));
+ const botao=document.getElementById("btnVisibilidadeAgenda");
+ botao.textContent=visualizacaoOcupada?"Salvando…":proximosJogosVisiveis?"Ocultar dos alunos":"Mostrar aos alunos";
+ botao.disabled=!(podeEditar() && visualizacaoPronta && !visualizacaoOcupada && publicarVisibilidadeRemota);
+ botao.setAttribute("aria-pressed",String(proximosJogosVisiveis));
+ document.getElementById("estadoVisibilidadeAgenda").textContent=erroVisibilidade || (!visualizacaoPronta?
+ "Aguardando conexão para consultar a visibilidade.":
+ proximosJogosVisiveis?"Próximos jogos visíveis para os alunos.":"Próximos jogos ocultos para os alunos. Você pode preparar a programação aqui.");
+}
+async function alternarVisibilidadeProgramacao() {
+ if(!podeEditar() || !visualizacaoPronta || visualizacaoOcupada || !publicarVisibilidadeRemota) return;
+ const desejada=!proximosJogosVisiveis;
+ visualizacaoOcupada=true; erroVisibilidade=""; atualizarVisibilidadeProgramacao();
+ try { await publicarVisibilidadeRemota(desejada); }
+ catch(erro) { erroVisibilidade="Não foi possível alterar a visibilidade. "+erro.message; }
+ finally { visualizacaoOcupada=false; atualizarVisibilidadeProgramacao(); }
+}
 let acesso = { usuario:null, adminUid:null, pronto:false, ocupado:false, revisao:0 };
 let publicarNaNuvem = null;
 let sincronizacaoPendente = null;
@@ -1186,6 +1228,7 @@ function protegerControles() {
     e.style.opacity = podeEditar() ? "1" : ".45";
     e.style.pointerEvents = podeEditar() ? "auto" : "none";
   });
+  atualizarVisibilidadeProgramacao();
   const exibirLogin = modoAdministrador && !acesso.usuario;
   document.getElementById("btnLogin").hidden = !exibirLogin;
   document.getElementById("btnLogin").style.display = exibirLogin ? "" : "none";
@@ -1489,6 +1532,31 @@ publicarProgramacaoRemota=async(id,data)=>{
    }
   });
  } catch(erro) { throw new Error(erroAmigavel(erro)); }
+};
+
+const visualizacaoRef=doc(db,"ligas","pad2026","preferencias","visualizacao");
+onSnapshot(visualizacaoRef,{includeMetadataChanges:true},snapshot=>{
+ if(snapshot.metadata.hasPendingWrites) return;
+ visualizacaoPronta=!snapshot.metadata.fromCache;
+ proximosJogosVisiveis=snapshot.exists() && snapshot.data().proximosJogosVisiveis===true;
+ erroVisibilidade="";
+ atualizarVisibilidadeProgramacao();
+},erro=>{
+ visualizacaoPronta=false; proximosJogosVisiveis=false;
+ erroVisibilidade=erro.code==="permission-denied"?
+ "Habilite o botão nas regras do Firebase seguindo as instruções abaixo e recarregue o site.":
+ "Não foi possível consultar a visibilidade. Recarregue o site para tentar novamente.";
+ atualizarVisibilidadeProgramacao();
+});
+publicarVisibilidadeRemota=async(visivel)=>{
+ if(typeof visivel!=="boolean" || !autorizado() || auth.currentUser?.uid!==acesso.adminUid)
+  throw new Error("Somente o administrador pode alterar esta opção.");
+ const uid=auth.currentUser.uid;
+ await runTransaction(db,async transacao=>{
+  await transacao.get(visualizacaoRef);
+  if(auth.currentUser?.uid!==uid) throw new Error("A sessão mudou. Entre novamente.");
+  transacao.set(visualizacaoRef,{proximosJogosVisiveis:visivel,atualizadoEm:serverTimestamp()});
+ });
 };
 
 </script>
