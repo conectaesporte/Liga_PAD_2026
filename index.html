@@ -358,15 +358,15 @@ service cloud.firestore {
       <h2>Painel da competição</h2>
       <p>Todos os turnos. Cada rodada. Muito além do jogo.</p>
     </div>
-    <div class="cards">
+    <div class="cards" data-admin-only hidden>
       <div class="card"><strong id="totalEquipes">0</strong><span>Equipes na disputa</span></div>
       <div class="card"><strong id="totalJogos">0</strong><span>Jogos da fase de grupos</span></div>
       <div class="card"><strong id="jogosFinalizados">0</strong><span>Jogos finalizados</span></div>
     </div>
-    <div class="progresso-topo">
+    <div class="progresso-topo" data-admin-only hidden>
       <p>Fase de grupos</p><p id="resumoProgresso">Aguardando resultados</p>
     </div>
-    <div class="progresso-trilho" id="progressoCompeticao" role="progressbar" aria-label="Jogos concluídos da fase de grupos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="progresso-trilho" data-admin-only hidden id="progressoCompeticao" role="progressbar" aria-label="Jogos concluídos da fase de grupos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
       <div class="progresso-barra" id="progressoBarra"></div>
     </div>
     <div class="atalhos">
