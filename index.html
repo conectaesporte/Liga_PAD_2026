@@ -199,6 +199,41 @@ footer strong { color: #4a6378; }
  .agenda-confronto { font-size: 13px; }
 }
 
+
+/* Próximos jogos organizados por turno */
+.proximos-bloco > .secao-topo {
+  background: linear-gradient(110deg,var(--azul),#155345);
+  padding: 18px 20px;
+  border-radius: 13px;
+  margin-bottom: 18px;
+}
+.proximos-bloco > .secao-topo .kicker { color: #a0ebcc; margin-bottom: 5px; }
+.proximos-bloco > .secao-topo h3 { color: #fff; font-size: 24px; }
+.agenda-lista { align-items: start; gap: 18px; }
+.agenda-turno { min-width: 0; border: 1px solid; border-radius: 14px; overflow: hidden; }
+.agenda-turno-manha { background: #fffaf0; border-color: #eddbb1; }
+.agenda-turno-tarde { background: #f1f7fd; border-color: #ccdfef; }
+.agenda-turno-topo { display: flex; align-items: center; gap: 11px; padding: 16px; border-bottom: 1px solid; }
+.agenda-turno-topo h4 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+.agenda-turno-manha .agenda-turno-topo { background: #ffedbc; border-color: #eddbb1; }
+.agenda-turno-tarde .agenda-turno-topo { background: #dfeffd; border-color: #ccdfef; }
+.agenda-turno-manha .agenda-turno-topo h4 { color: #684609; }
+.agenda-turno-tarde .agenda-turno-topo h4 { color: #194d7a; }
+.agenda-turno-icone { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.agenda-turno-jogos { display: grid; gap: 12px; padding: 14px; }
+.agenda-turno .agenda-cartao { background: #fff; }
+.agenda-turno-manha .agenda-meta time { color: #7c5106; }
+.agenda-turno-tarde .agenda-meta time { color: #194d7a; }
+.agenda-turno-vazio { margin: 0; padding: 10px 2px; color: var(--muted); font-size: 13px; }
+@media(max-width: 700px) {
+ .proximos-bloco > .secao-topo { padding: 17px 16px; }
+ .proximos-bloco > .secao-topo h3 { font-size: 23px; }
+ .agenda-turno-topo { padding: 14px; }
+ .agenda-turno-topo h4 { font-size: 18px; }
+ .agenda-turno-jogos { padding: 10px; }
+ .agenda-turno .agenda-cartao { padding: 13px; }
+}
+
 </style>
 </head>
 <body>
@@ -1066,16 +1101,27 @@ function listarProximosJogos() {
     .filter(p=>jogoPendente(p.jogo))
     .sort((a,b)=>a.data.localeCompare(b.data)||a.jogoId-b.jogoId);
   const destino=document.getElementById("listaProximosJogos");
-  destino.innerHTML=lista.map(p=>{
+  const cartao=p=>{
     const [ano,mes,dia]=p.data.split("-");
     return '<article class="agenda-cartao">'+
       '<div class="agenda-meta"><time datetime="'+p.data+'">'+diaSemanaProgramacao(p.data)+' · '+dia+'/'+mes+'/'+ano+'</time>'+
-      '<span>'+p.jogo.turno+' · Grupo '+p.jogo.grupo+'</span></div>'+
+      '<span>Grupo '+p.jogo.grupo+'</span></div>'+
       '<div class="agenda-confronto"><strong>'+p.jogo.casa+'</strong><span>×</span><strong>'+p.jogo.fora+'</strong></div>'+
       '<div class="agenda-acoes" data-admin-only hidden>'+
       '<button type="button" onclick="editarProgramacao('+p.jogoId+')">Alterar data</button>'+
       '<button type="button" class="agenda-remover" onclick="removerProgramacao('+p.jogoId+')">Remover</button></div></article>';
-  }).join("");
+  };
+  destino.innerHTML=lista.length ? ["Manhã","Tarde"].map(turno=>{
+    const manha=turno==="Manhã";
+    const id=manha ? "manha" : "tarde";
+    const partidas=lista.filter(p=>p.jogo.turno===turno);
+    return '<div class="agenda-turno agenda-turno-'+id+'" role="group" aria-labelledby="titulo-agenda-'+id+'">'+
+      '<div class="agenda-turno-topo"><span class="agenda-turno-icone" aria-hidden="true">'+(manha?"☀️":"🌤️")+'</span>'+
+      '<h4 id="titulo-agenda-'+id+'">Turno da '+turno+'</h4></div>'+
+      '<div class="agenda-turno-jogos">'+(partidas.length ? partidas.map(cartao).join("") :
+        '<p class="agenda-turno-vazio">Nenhum jogo programado para este turno.</p>')+
+      '</div></div>';
+  }).join("") : "";
   document.getElementById("agendaVazia").hidden=lista.length>0;
   document.getElementById("agendaVazia").textContent=erroProgramacao ? "A programação está indisponível no momento." :
     programacaoPronta ? "Nenhum próximo jogo programado por enquanto." : "Carregando programação…";
