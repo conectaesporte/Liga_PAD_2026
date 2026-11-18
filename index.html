@@ -746,22 +746,25 @@ const statusJogo = finalizado
 }
 
 function registrar(id) {
-    let c=document.getElementById("c"+id).value;
-    let f=document.getElementById("f"+id).value;
-    if(c===""||f===""||!placarValido(Number(c))||!placarValido(Number(f))){
-        alert("Informe os dois placares corretamente.");return;
-    }
-    
-jogos[id].golsCasa = Number(c);
-jogos[id].golsFora = Number(f);
+  const jogo = jogos[id];
+  const campoCasa = document.getElementById("c"+id);
+  const campoFora = document.getElementById("f"+id);
+  const casa = campoCasa.value;
+  const fora = campoFora.value;
+  const limpar = casa === "" && fora === "";
 
-salvar();
+  if (campoCasa.validity.badInput || campoFora.validity.badInput ||
+      (!limpar && (casa === "" || fora === "" || !placarValido(Number(casa)) || !placarValido(Number(fora))))) {
+    alert("Informe os dois placares corretamente ou deixe ambos vazios para limpar o resultado.");
+    return;
+  }
 
-verificarResultadosFinais(jogos[id].turno);
+  if (limpar && jogo.golsCasa === "" && jogo.golsFora === "") return;
+  if (limpar && Object.keys(resultadosFinais).some(chave => chave.startsWith(jogo.turno+"-")) &&
+      !confirm("Limpar este placar também apagará os resultados das fases finais deste turno. Continuar?")) return;
 
-atualizar();
-
-    
+  jogo.golsCasa = limpar ? "" : Number(casa);
+  jogo.golsFora = limpar ? "" : Number(fora);
 }
 
 function verificarResultadosFinais(turno) {
@@ -843,16 +846,22 @@ let resultadosFinais = {};
 
 
 function salvarResultadoFinal(turno, fase, casa, fora) {
-  const golsCasa = document.getElementById(
-    `mata-casa-${turno}-${fase}`
-  ).value;
+  const campoCasa = document.getElementById(`mata-casa-${turno}-${fase}`);
+  const campoFora = document.getElementById(`mata-fora-${turno}-${fase}`);
+  const golsCasa = campoCasa.value;
+  const golsFora = campoFora.value;
 
-  const golsFora = document.getElementById(
-    `mata-fora-${turno}-${fase}`
-  ).value;
+  if (campoCasa.validity.badInput || campoFora.validity.badInput || (golsCasa === "") !== (golsFora === "")) {
+    alert("Informe os dois placares corretamente ou deixe ambos vazios para limpar o resultado.");
+    return;
+  }
 
-  if (golsCasa === "" || golsFora === "") {
-    alert("Informe os dois placares.");
+  if (golsCasa === "" && golsFora === "") {
+    const chave = `${turno}-${fase}`;
+    if (!resultadosFinais[chave]) return;
+    if (fase !== "final" && resultadosFinais[`${turno}-final`] &&
+        !confirm("Limpar esta semifinal também apagará o resultado da final deste turno. Continuar?")) return;
+    delete resultadosFinais[chave];
     return;
   }
 
